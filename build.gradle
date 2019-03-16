@@ -1,0 +1,39 @@
+plugins {
+    id "java"
+    id "application"
+    id "com.github.johnrengelman.shadow" version "5.0.0"
+}
+
+sourceCompatibility = 1.8
+
+group = "de.mat2095"
+version = "0.1.0"
+
+mainClassName = "de.mat2095.detunes.Main"
+
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://repository.mulesoft.org/nexus/content/repositories/public/"
+    }
+}
+
+dependencies {
+    compile "com.github.strikerx3:jxinput:1.0.0"
+}
+
+
+run {
+    maxHeapSize = "2g"
+
+    if (project.hasProperty("appArgs")) {
+        args Eval.me(appArgs)
+    }
+}
+
+
+shadowJar {
+    zip64 = true
+    mergeServiceFiles()
+}
