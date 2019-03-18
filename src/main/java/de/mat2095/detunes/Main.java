@@ -14,7 +14,7 @@ class Main {
     public static void main(String[] args) throws IOException {
 //        File romFile = new File(args[0]).getCanonicalFile();
 //        System.out.println("Reading ROM-file: " + romFile);
-//        analyseRom(romFile.toPath());
+//        play(romFile.toPath());
 
 //        Files.find(Paths.get("roms"),
 //            Integer.MAX_VALUE,
@@ -58,12 +58,21 @@ class Main {
         }
     }
 
+    private static void play(Path gameFile) throws IOException {
+        byte[] testBytes = Files.readAllBytes(gameFile);
+        Cartridge testCartridge = new Cartridge(testBytes);
+        Cpu cpu = new Cpu(testCartridge);
+        cpu.power();
+        cpu.run();
+    }
+
     private static void test() throws IOException {
         Path testFile = Paths.get("roms/tests/nestest.nes");
         byte[] testBytes = Files.readAllBytes(testFile);
         Cartridge testCartridge = new Cartridge(testBytes);
         Cpu cpu = new Cpu(testCartridge);
-        cpu.pc = 0x0C000;
+        cpu.power();
+        cpu.pc = 0x0C000; // pc to run all tests
         cpu.run();
     }
 }

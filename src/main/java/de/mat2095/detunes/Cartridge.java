@@ -49,9 +49,14 @@ class Cartridge {
         return prg[(addr & 0x7FFF) % prgSize];
     }
 
+    byte write(int addr, byte value) {
+        throw new IllegalArgumentException("Writing to Cartridge not yet supported");
+    }
+
     byte readChr(int addr) {
         if (addr < 0x0000 || addr > 0x1FFF || addr >= chrSize) {
-            throw new IllegalArgumentException("CHR addr out of range: 0x" + Integer.toHexString(addr) + " (size is 0x" + Integer.toHexString(chrSize) + ")");
+            throw new IllegalArgumentException("CHR addr out of range: 0x" + Integer.toHexString(addr)
+                + " (size is 0x" + Integer.toHexString(chrSize) + ")");
         }
 
         return chr[addr];
