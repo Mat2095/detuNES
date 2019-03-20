@@ -5,10 +5,10 @@ public class Cpu {
     private static final String[] OP_NAMES = new String[256];
 
     static {
-        OP_NAMES[0x08] = "PHP";
         OP_NAMES[0x01] = "ORA<izx>";
         OP_NAMES[0x05] = "ORA<zp>";
         OP_NAMES[0x06] = "ASL<zp>";
+        OP_NAMES[0x08] = "PHP";
         OP_NAMES[0x09] = "ORA<imm>";
         OP_NAMES[0x0A] = "ASL_A";
         OP_NAMES[0x10] = "br<N,0>";
@@ -25,7 +25,7 @@ public class Cpu {
 //        OP_NAMES[0x35] = "AND<zpx>";
         OP_NAMES[0x38] = "flag<C,1>";
         OP_NAMES[0x40] = "RTI";
-        OP_NAMES[0x40] = "EOR<izx>";
+        OP_NAMES[0x41] = "EOR<izx>";
         OP_NAMES[0x45] = "EOR<zp>";
         OP_NAMES[0x46] = "LSR<zp>";
         OP_NAMES[0x48] = "PHA";
@@ -219,11 +219,6 @@ public class Cpu {
         pc++;
 
         switch (op) {
-            case 0x08: { // PHP
-                byte p = (byte) (getP() | 0b00010000);
-                pushStack(p);
-                break;
-            }
             case 0x01: { // ORA<izx>
                 regAcc |= read(readIzxAddr());
                 updateNZ(regAcc);
@@ -232,6 +227,11 @@ public class Cpu {
             case 0x05: { // ORA<zp>
                 regAcc |= read(read(pc++) & 0xFF);
                 updateNZ(regAcc);
+                break;
+            }
+            case 0x08: { // PHP
+                byte p = (byte) (getP() | 0b00010000);
+                pushStack(p);
                 break;
             }
             case 0x06: { // ASL<zp>
