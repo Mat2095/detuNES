@@ -16,6 +16,7 @@ public class Cpu {
         OP_NAMES[0x10] = "br<N,0>";
         OP_NAMES[0x11] = "ORA<izy>";
         OP_NAMES[0x18] = "flag<C,0>";
+        OP_NAMES[0x19] = "ORA<aby>";
         OP_NAMES[0x20] = "JSR";
         OP_NAMES[0x21] = "AND<izx>";
         OP_NAMES[0x24] = "BIT<zp>";
@@ -31,6 +32,7 @@ public class Cpu {
         OP_NAMES[0x31] = "AND<izy>";
 //        OP_NAMES[0x35] = "AND<zpx>";
         OP_NAMES[0x38] = "flag<C,1>";
+        OP_NAMES[0x39] = "AND<aby>";
         OP_NAMES[0x40] = "RTI";
         OP_NAMES[0x41] = "EOR<izx>";
         OP_NAMES[0x45] = "EOR<zp>";
@@ -43,6 +45,7 @@ public class Cpu {
         OP_NAMES[0x4E] = "LSR<abs>";
         OP_NAMES[0x50] = "br<V,0>";
         OP_NAMES[0x51] = "EOR<izy>";
+        OP_NAMES[0x59] = "EOR<aby>";
         OP_NAMES[0x60] = "RTS";
         OP_NAMES[0x61] = "ADC<izx>";
         OP_NAMES[0x65] = "ADC<zp>";
@@ -56,6 +59,7 @@ public class Cpu {
         OP_NAMES[0x70] = "br<V,1>";
         OP_NAMES[0x71] = "ADC<izy>";
         OP_NAMES[0x78] = "flag<I,1>";
+        OP_NAMES[0x79] = "ADC<aby>";
         OP_NAMES[0x81] = "st<A,izx>";
         OP_NAMES[0x84] = "st<Y,zp>";
         OP_NAMES[0x85] = "st<A,zp>";
@@ -68,6 +72,7 @@ public class Cpu {
         OP_NAMES[0x90] = "br<C,0>";
         OP_NAMES[0x91] = "st<A,izy>";
         OP_NAMES[0x98] = "tr<Y,A>";
+        OP_NAMES[0x99] = "st<A,aby>";
         OP_NAMES[0x9A] = "tr<X,S>";
         OP_NAMES[0xA0] = "ld<Y,imm>";
         OP_NAMES[0xA1] = "ld<A,izx>";
@@ -84,6 +89,7 @@ public class Cpu {
         OP_NAMES[0xB0] = "br<C,1>";
         OP_NAMES[0xB1] = "ld<A,izy>";
         OP_NAMES[0xB8] = "flag<V,0>";
+        OP_NAMES[0xB9] = "ld<A,aby>";
         OP_NAMES[0xBA] = "tr<S,X>";
         OP_NAMES[0xC0] = "cmp<Y,imm>";
         OP_NAMES[0xC1] = "cmp<A,izx>";
@@ -99,6 +105,7 @@ public class Cpu {
         OP_NAMES[0xD0] = "br<Z,0>";
         OP_NAMES[0xD1] = "cmp<A,izy>";
         OP_NAMES[0xD8] = "flag<D,0>";
+        OP_NAMES[0xD9] = "cmp<A,aby>";
         OP_NAMES[0xE0] = "cmp<X,imm>";
         OP_NAMES[0xE1] = "SBC<izx>";
         OP_NAMES[0xE4] = "cmp<X,zp>";
@@ -113,6 +120,7 @@ public class Cpu {
         OP_NAMES[0xF0] = "br<Z,1>";
         OP_NAMES[0xF1] = "SBC<izy>";
         OP_NAMES[0xF8] = "flag<D,1>";
+        OP_NAMES[0xF9] = "SBC<aby>";
     }
 
     byte[] ram;
@@ -213,6 +221,10 @@ public class Cpu {
         int ai1 = read(pc++) & 0xFF;
         int ai2 = (ai1 + 1) & 0xFF;
         return (((read(ai1) & 0xFF) | ((read(ai2) & 0xFF) << 8)) + (regY & 0xFF)) & 0xFFFF;
+    }
+
+    int readAbyAddr() {
+        return (readAbsAddr() + (regY & 0xFF)) & 0xFFFF;
     }
 
     void pushStack(byte b) {
@@ -323,6 +335,11 @@ public class Cpu {
                 flagC = false;
                 break;
             }
+            case 0x19: { // ORA<aby>
+                regAcc |= read(readAbyAddr());
+                updateNZ(regAcc);
+                break;
+            }
             case 0x20: { // JSR
                 int t = pc + 1;
                 pushStack((byte) (t >>> 8));
@@ -416,6 +433,11 @@ public class Cpu {
                 flagC = true;
                 break;
             }
+            case 0x39: { // AND<aby>
+                regAcc &= read(readAbyAddr());
+                updateNZ(regAcc);
+                break;
+            }
             case 0x40: { // RTI
                 setP(popStack());
                 byte t1 = popStack();
@@ -484,6 +506,11 @@ public class Cpu {
             }
             case 0x51: { // EOR<izy>
                 regAcc ^= read(readIzyAddr());
+                updateNZ(regAcc);
+                break;
+            }
+            case 0x59: { // EOR<aby>
+                regAcc ^= read(readAbyAddr());
                 updateNZ(regAcc);
                 break;
             }
@@ -605,6 +632,19 @@ public class Cpu {
                 flagI = false;
                 break;
             }
+            case 0x79: { // ADC<aby>
+                byte p = read(readAbyAddr());
+                int result = (regAcc & 0xFF) + (p & 0xFF) + (flagC ? 1 : 0);
+                flagC = result > 0xFF;
+
+                // P[V] = ~(x^y) & (x^r) & 0x80;
+                flagV = ((regAcc < 0) != ((byte) result < 0)) && ((regAcc < 0) == (p < 0));
+                // TODO: write better
+
+                regAcc = (byte) result;
+                updateNZ(regAcc);
+                break;
+            }
             case (byte) 0x81: { // st<A,izx>
                 write(readIzxAddr(), regAcc);
                 break;
@@ -657,6 +697,10 @@ public class Cpu {
             case (byte) 0x98: { // tr<Y,A>
                 regAcc = regY;
                 updateNZ(regAcc);
+                break;
+            }
+            case (byte) 0x99: { // st<A,aby>
+                write(readAbyAddr(), regAcc);
                 break;
             }
             case (byte) 0x9A: { // tr<X,S>
@@ -738,6 +782,11 @@ public class Cpu {
             }
             case (byte) 0xB8: { // flag<V,0>
                 flagV = false;
+                break;
+            }
+            case (byte) 0xB9: { // ld<A,aby>
+                regAcc = read(readAbyAddr());
+                updateNZ(regAcc);
                 break;
             }
             case (byte) 0xBA: { // tr<S,X>
@@ -828,6 +877,12 @@ public class Cpu {
             }
             case (byte) 0xD8: { // flag<D,0>
                 flagD = false;
+                break;
+            }
+            case (byte) 0xD9: { // cmp<A,aby>
+                byte m = read(readAbyAddr());
+                updateNZ((byte) (regY - m));
+                flagC = (regY & 0xFF) >= (m & 0xFF);
                 break;
             }
             case (byte) 0xE0: { // cmp<X,imm>
@@ -946,6 +1001,19 @@ public class Cpu {
             }
             case (byte) 0xF8: { // flag<D,1>
                 flagD = true;
+                break;
+            }
+            case (byte) 0xF9: { // SBC<aby>
+                byte p = (byte) (read(readAbyAddr()) ^ 0xFF); // TODO: test?
+                int result = (regAcc & 0xFF) + (p & 0xFF) + (flagC ? 1 : 0);
+                flagC = result > 0xFF;
+
+                // P[V] = ~(x^y) & (x^r) & 0x80;
+                flagV = ((regAcc < 0) != ((byte) result < 0)) && ((regAcc < 0) == (p < 0));
+                // TODO: write better
+
+                regAcc = (byte) result;
+                updateNZ(regAcc);
                 break;
             }
             default:
