@@ -85,6 +85,7 @@ public class Cpu {
         OP_NAMES[0x91] = "st<A,izy>";
         OP_NAMES[0x94] = "st<Y,zpx>";
         OP_NAMES[0x95] = "st<A,zpx>";
+        OP_NAMES[0x96] = "st<X,zpy>";
         OP_NAMES[0x98] = "tr<Y,A>";
         OP_NAMES[0x99] = "st<A,aby>";
         OP_NAMES[0x9A] = "tr<X,S>";
@@ -104,6 +105,7 @@ public class Cpu {
         OP_NAMES[0xB1] = "ld<A,izy>";
         OP_NAMES[0xB4] = "ld<Y,zpx>";
         OP_NAMES[0xB5] = "ld<A,zpx>";
+        OP_NAMES[0xB6] = "ld<X,zpy>";
         OP_NAMES[0xB8] = "flag<V,0>";
         OP_NAMES[0xB9] = "ld<A,aby>";
         OP_NAMES[0xBA] = "tr<S,X>";
@@ -226,6 +228,10 @@ public class Cpu {
     }
 
     int readZpxAddr() {
+        return ((read(pc++) & 0xFF) + (regX & 0xFF)) & 0xFF;
+    }
+
+    int readZpyAddr() {
         return ((read(pc++) & 0xFF) + (regY & 0xFF)) & 0xFF;
     }
 
@@ -784,6 +790,10 @@ public class Cpu {
                 write(readZpxAddr(), regAcc);
                 break;
             }
+            case (byte) 0x96: { // st<X,zpy>
+                write(readZpyAddr(), regX);
+                break;
+            }
             case (byte) 0x98: { // tr<Y,A>
                 regAcc = regY;
                 updateNZ(regAcc);
@@ -878,6 +888,11 @@ public class Cpu {
             case (byte) 0xB5: { // ld<A,zpx>
                 regAcc = read(readZpxAddr());
                 updateNZ(regAcc);
+                break;
+            }
+            case (byte) 0xB6: { // ld<X,zpy>
+                regX = read(readZpyAddr());
+                updateNZ(regX);
                 break;
             }
             case (byte) 0xB8: { // flag<V,0>
