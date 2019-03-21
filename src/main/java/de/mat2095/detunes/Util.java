@@ -12,4 +12,8 @@ public class Util {
     public static String getHexString(byte b) {
         return String.format("0x%2s", Integer.toHexString(b & 0xFF).toUpperCase()).replace(' ', '0');
     }
+
+    public static String getHexString16bit(int i) {
+        return String.format("0x%4s", Integer.toHexString(i).toUpperCase()).replace(' ', '0');
+    }
 }

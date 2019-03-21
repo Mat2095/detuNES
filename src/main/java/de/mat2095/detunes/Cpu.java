@@ -50,6 +50,7 @@ public class Cpu {
         OP_NAMES[0x68] = "PLA";
         OP_NAMES[0x69] = "ADC<imm>";
         OP_NAMES[0x6A] = "ROR_A";
+        OP_NAMES[0x6C] = "JMP_IND";
         OP_NAMES[0x6D] = "ADC<abs>";
         OP_NAMES[0x6E] = "ROR<abs>";
         OP_NAMES[0x70] = "br<V,1>";
@@ -239,11 +240,12 @@ public class Cpu {
 
         byte op = read(pc);
         System.out.println("exec"
+            + "\u00a0  err: " + Util.getHexString(read(0x02)) + " " + Util.getHexString(read(0x03))
             + "\u00a0  SP: " + Util.getHexString(regSP)
             + "\u00a0 X: " + Util.getHexString(regX)
             + "\u00a0 Y: " + Util.getHexString(regY)
             + "\u00a0 Flags: " + Util.getBinString(getP())
-            + "\u00a0 pc: 0x" + Integer.toHexString(pc)
+            + "\u00a0 pc: 0x" + Util.getHexString16bit(pc)
             + "\u00a0 Acc: " + Util.getHexString(regAcc)
             + "\u00a0  op: " + Util.getHexString(op)
             + "\u00a0 " + (OP_NAMES[op & 0xFF] != null ? OP_NAMES[op & 0xFF] : ""));
@@ -549,6 +551,12 @@ public class Cpu {
                 flagC = (regAcc & 0x01) == 0x01;
                 regAcc = newAcc;
                 updateNZ(regAcc);
+                break;
+            }
+            case 0x6C: { // JMP_IND
+                int ai1 = readDouble(pc);
+                int ai2 = (ai1 & 0xFF00) | ((ai1 + 1) & 0xFF);
+                pc = (read(ai1) & 0xFF) | ((read(ai2) & 0xFF) << 8);
                 break;
             }
             case 0x6D: { // ADC<abs>
