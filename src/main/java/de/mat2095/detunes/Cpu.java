@@ -197,6 +197,12 @@ public class Cpu {
         flagZ = b == 0;
     }
 
+    int readAbsAddr() {
+        int addr = (read(pc) & 0xFF) | ((read(pc + 1) & 0xFF) << 8);
+        pc += 2;
+        return addr;
+    }
+
     int readIzxAddr() {
         int ai1 = ((read(pc++) & 0xFF) + regX) & 0xFF;
         int ai2 = (ai1 + 1) & 0xFF;
@@ -288,14 +294,12 @@ public class Cpu {
                 break;
             }
             case 0x0D: { // ORA<abs>
-                regAcc |= read(readDouble(pc));
-                pc += 2;
+                regAcc |= read(readAbsAddr());
                 updateNZ(regAcc);
                 break;
             }
             case 0x0E: { // ASL<abs>
-                int addr = readDouble(pc);
-                pc += 2;
+                int addr = readAbsAddr();
                 byte p = read(addr);
                 flagC = (p & 0x80) == 0x80;
                 p = (byte) ((p & 0xFF) << 1);
@@ -369,8 +373,7 @@ public class Cpu {
                 break;
             }
             case 0x2C: { // BIT<abs>
-                byte p = read(readDouble(pc));
-                pc += 2;
+                byte p = read(readAbsAddr());
                 flagZ = (regAcc & p) == 0;
                 flagN = (p & 0x80) != 0;
                 flagV = (p & 0x40) != 0;
@@ -383,8 +386,7 @@ public class Cpu {
                 break;
             }
             case 0x2E: { // ROL<abs>
-                int addr = readDouble(pc);
-                pc += 2;
+                int addr = readAbsAddr();
                 byte p = read(addr);
                 byte newP = (byte) ((flagC ? 0x01 : 0x00) | ((p & 0xFF) << 1));
                 flagC = (p & 0x80) == 0x80;
@@ -460,14 +462,12 @@ public class Cpu {
                 break;
             }
             case 0x4D: { // EOR<abs>
-                regAcc ^= read(readDouble(pc));
-                pc += 2;
+                regAcc ^= read(readAbsAddr());
                 updateNZ(regAcc);
                 break;
             }
             case 0x4E: { // LSR<abs>
-                int addr = readDouble(pc);
-                pc += 2;
+                int addr = readAbsAddr();
                 byte p = read(addr);
                 flagC = (p & 0x01) == 0x01;
                 p = (byte) ((p & 0xFF) >>> 1);
@@ -560,8 +560,7 @@ public class Cpu {
                 break;
             }
             case 0x6D: { // ADC<abs>
-                byte p = read(readDouble(pc));
-                pc += 2;
+                byte p = read(readAbsAddr());
                 int result = (regAcc & 0xFF) + (p & 0xFF) + (flagC ? 1 : 0);
                 flagC = result > 0xFF;
 
@@ -574,8 +573,7 @@ public class Cpu {
                 break;
             }
             case 0x6E: { // ROR<abs>
-                int addr = readDouble(pc);
-                pc += 2;
+                int addr = readAbsAddr();
                 byte p = read(addr);
                 byte newP = (byte) ((flagC ? 0x80 : 0x00) | ((p & 0xFF) >>> 1));
                 flagC = (p & 0x01) == 0x01;
@@ -634,21 +632,15 @@ public class Cpu {
                 break;
             }
             case (byte) 0x8C: { // st<Y,abs>
-                int addr = readDouble(pc);
-                pc += 2;
-                write(addr, regY);
+                write(readAbsAddr(), regY);
                 break;
             }
             case (byte) 0x8D: { // st<A,abs>
-                int addr = readDouble(pc);
-                pc += 2;
-                write(addr, regAcc);
+                write(readAbsAddr(), regAcc);
                 break;
             }
             case (byte) 0x8E: { // st<X,abs>
-                int addr = readDouble(pc);
-                pc += 2;
-                write(addr, regX);
+                write(readAbsAddr(), regX);
                 break;
             }
             case (byte) 0x90: { // br<C,0>
@@ -718,20 +710,17 @@ public class Cpu {
                 break;
             }
             case (byte) 0xAC: { // ld<Y,abs>
-                regY = read(readDouble(pc));
-                pc += 2;
+                regY = read(readAbsAddr());
                 updateNZ(regY);
                 break;
             }
             case (byte) 0xAD: { // ld<A,abs>
-                regAcc = read(readDouble(pc));
-                pc += 2;
+                regAcc = read(readAbsAddr());
                 updateNZ(regAcc);
                 break;
             }
             case (byte) 0xAE: { // ld<X,abs>
-                regX = read(readDouble(pc));
-                pc += 2;
+                regX = read(readAbsAddr());
                 updateNZ(regX);
                 break;
             }
@@ -805,22 +794,19 @@ public class Cpu {
                 break;
             }
             case (byte) 0xCC: { // cmp<Y,abs>
-                byte m = read(readDouble(pc));
-                pc += 2;
+                byte m = read(readAbsAddr());
                 updateNZ((byte) (regY - m));
                 flagC = (regY & 0xFF) >= (m & 0xFF);
                 break;
             }
             case (byte) 0xCD: { // cmp<A,abs>
-                byte m = read(readDouble(pc));
-                pc += 2;
+                byte m = read(readAbsAddr());
                 updateNZ((byte) (regY - m));
                 flagC = (regY & 0xFF) >= (m & 0xFF);
                 break;
             }
             case (byte) 0xCE: { // DEC<abs>
-                int addr = readDouble(pc);
-                pc += 2;
+                int addr = readAbsAddr();
                 byte p = read(addr);
                 p--;
                 write(addr, p);
@@ -912,15 +898,13 @@ public class Cpu {
                 break;
             }
             case (byte) 0xEC: { // cmp<X,abs>
-                byte m = read(readDouble(pc));
-                pc += 2;
+                byte m = read(readAbsAddr());
                 updateNZ((byte) (regX - m));
                 flagC = (regX & 0xFF) >= (m & 0xFF);
                 break;
             }
             case (byte) 0xED: { // SBC<abs>
-                byte p = (byte) (read(readDouble(pc)) ^ 0xFF); // TODO: test?
-                pc += 2;
+                byte p = (byte) (read(readAbsAddr()) ^ 0xFF); // TODO: test?
                 int result = (regAcc & 0xFF) + (p & 0xFF) + (flagC ? 1 : 0);
                 flagC = result > 0xFF;
 
@@ -933,8 +917,7 @@ public class Cpu {
                 break;
             }
             case (byte) 0xEE: { // INC<abs>
-                int addr = readDouble(pc);
-                pc += 2;
+                int addr = readAbsAddr();
                 byte p = read(addr);
                 p++;
                 write(addr, p);
