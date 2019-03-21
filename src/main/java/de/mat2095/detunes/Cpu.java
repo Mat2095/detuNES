@@ -11,6 +11,8 @@ public class Cpu {
         OP_NAMES[0x08] = "PHP";
         OP_NAMES[0x09] = "ORA<imm>";
         OP_NAMES[0x0A] = "ASL_A";
+        OP_NAMES[0x0D] = "ORA<abs>";
+        OP_NAMES[0x0E] = "ASL<abs>";
         OP_NAMES[0x10] = "br<N,0>";
         OP_NAMES[0x18] = "flag<C,0>";
         OP_NAMES[0x20] = "JSR";
@@ -21,6 +23,9 @@ public class Cpu {
         OP_NAMES[0x28] = "PLP";
         OP_NAMES[0x29] = "AND<imm>";
         OP_NAMES[0x2A] = "ROL_A";
+        OP_NAMES[0x2C] = "BIT<abs>";
+        OP_NAMES[0x2D] = "AND<abs>";
+        OP_NAMES[0x2E] = "ROL<abs>";
         OP_NAMES[0x30] = "br<N,1>";
 //        OP_NAMES[0x35] = "AND<zpx>";
         OP_NAMES[0x38] = "flag<C,1>";
@@ -32,6 +37,8 @@ public class Cpu {
         OP_NAMES[0x49] = "EOR<imm>";
         OP_NAMES[0x4A] = "LSR_A";
         OP_NAMES[0x4C] = "JMP";
+        OP_NAMES[0x4D] = "EOR<abs>";
+        OP_NAMES[0x4E] = "LSR<abs>";
         OP_NAMES[0x50] = "br<V,0>";
         OP_NAMES[0x60] = "RTS";
         OP_NAMES[0x61] = "ADC<izx>";
@@ -40,6 +47,8 @@ public class Cpu {
         OP_NAMES[0x68] = "PLA";
         OP_NAMES[0x69] = "ADC<imm>";
         OP_NAMES[0x6A] = "ROR_A";
+        OP_NAMES[0x6D] = "ADC<abs>";
+        OP_NAMES[0x6E] = "ROR<abs>";
         OP_NAMES[0x70] = "br<V,1>";
         OP_NAMES[0x78] = "flag<I,1>";
         OP_NAMES[0x81] = "st<A,izx>";
@@ -48,6 +57,7 @@ public class Cpu {
         OP_NAMES[0x86] = "st<X,zp>";
         OP_NAMES[0x88] = "dec<Y>";
         OP_NAMES[0x8A] = "tr<X,A>";
+        OP_NAMES[0x8C] = "st<Y,abs>";
         OP_NAMES[0x8D] = "st<A,abs>";
         OP_NAMES[0x8E] = "st<X,abs>";
         OP_NAMES[0x90] = "br<C,0>";
@@ -62,6 +72,7 @@ public class Cpu {
         OP_NAMES[0xA8] = "tr<A,Y>";
         OP_NAMES[0xA9] = "ld<A,imm>";
         OP_NAMES[0xAA] = "tr<A,X>";
+        OP_NAMES[0xAC] = "ld<Y,abs>";
         OP_NAMES[0xAD] = "ld<A,abs>";
         OP_NAMES[0xAE] = "ld<X,abs>";
         OP_NAMES[0xB0] = "br<C,1>";
@@ -75,6 +86,9 @@ public class Cpu {
         OP_NAMES[0xC8] = "inc<Y>";
         OP_NAMES[0xC9] = "cmp<A,imm>";
         OP_NAMES[0xCA] = "dec<X>";
+        OP_NAMES[0xCC] = "cmp<Y,abs>";
+        OP_NAMES[0xCD] = "cmp<A,abs>";
+        OP_NAMES[0xCE] = "DEC<abs>";
         OP_NAMES[0xD0] = "br<Z,0>";
         OP_NAMES[0xD8] = "flag<D,0>";
         OP_NAMES[0xE0] = "cmp<X,imm>";
@@ -85,6 +99,9 @@ public class Cpu {
         OP_NAMES[0xE8] = "inc<X>";
         OP_NAMES[0xE9] = "SBC<imm>";
         OP_NAMES[0xEA] = "NOP";
+        OP_NAMES[0xEC] = "cmp<X,abs>";
+        OP_NAMES[0xED] = "SBC<abs>";
+        OP_NAMES[0xEE] = "INC<abs>";
         OP_NAMES[0xF0] = "br<Z,1>";
         OP_NAMES[0xF8] = "flag<D,1>";
     }
@@ -254,6 +271,22 @@ public class Cpu {
                 updateNZ(regAcc);
                 break;
             }
+            case 0x0D: { // ORA<abs>
+                regAcc |= read(readDouble(pc));
+                pc += 2;
+                updateNZ(regAcc);
+                break;
+            }
+            case 0x0E: { // ASL<abs>
+                int addr = readDouble(pc);
+                pc += 2;
+                byte p = read(addr);
+                flagC = (p & 0x80) == 0x80;
+                p = (byte) ((p & 0xFF) << 1);
+                write(addr, p);
+                updateNZ(p);
+                break;
+            }
             case 0x10: { // br<N,0>
                 byte offset = read(pc++);
                 if (!flagN) {
@@ -312,6 +345,30 @@ public class Cpu {
                 flagC = (regAcc & 0x80) == 0x80;
                 regAcc = newAcc;
                 updateNZ(regAcc);
+                break;
+            }
+            case 0x2C: { // BIT<abs>
+                byte p = read(readDouble(pc));
+                pc += 2;
+                flagZ = (regAcc & p) == 0;
+                flagN = (p & 0x80) != 0;
+                flagV = (p & 0x40) != 0;
+                break;
+            }
+            case 0x2D: { // AND<abs>
+                regAcc &= read(readDouble(pc));
+                pc += 2;
+                updateNZ(regAcc);
+                break;
+            }
+            case 0x2E: { // ROL<abs>
+                int addr = readDouble(pc);
+                pc += 2;
+                byte p = read(addr);
+                byte newP = (byte) ((flagC ? 0x01 : 0x00) | ((p & 0xFF) << 1));
+                flagC = (p & 0x80) == 0x80;
+                write(addr, newP);
+                updateNZ(newP);
                 break;
             }
             case 0x30: { // br<N,1>
@@ -374,6 +431,22 @@ public class Cpu {
             }
             case 0x4C: { // JMP
                 pc = readDouble(pc);
+                break;
+            }
+            case 0x4D: { // EOR<abs>
+                regAcc ^= read(readDouble(pc));
+                pc += 2;
+                updateNZ(regAcc);
+                break;
+            }
+            case 0x4E: { // LSR<abs>
+                int addr = readDouble(pc);
+                pc += 2;
+                byte p = read(addr);
+                flagC = (p & 0x01) == 0x01;
+                p = (byte) ((p & 0xFF) >>> 1);
+                write(addr, p);
+                updateNZ(p);
                 break;
             }
             case 0x50: { // br<V,0>
@@ -449,6 +522,30 @@ public class Cpu {
                 updateNZ(regAcc);
                 break;
             }
+            case 0x6D: { // ADC<abs>
+                byte p = read(readDouble(pc));
+                pc += 2;
+                int result = (regAcc & 0xFF) + (p & 0xFF) + (flagC ? 1 : 0);
+                flagC = result > 0xFF;
+
+                // P[V] = ~(x^y) & (x^r) & 0x80;
+                flagV = ((regAcc < 0) != ((byte) result < 0)) && ((regAcc < 0) == (p < 0));
+                // TODO: write better
+
+                regAcc = (byte) result;
+                updateNZ(regAcc);
+                break;
+            }
+            case 0x6E: { // ROR<abs>
+                int addr = readDouble(pc);
+                pc += 2;
+                byte p = read(addr);
+                byte newP = (byte) ((flagC ? 0x80 : 0x00) | ((p & 0xFF) >>> 1));
+                flagC = (p & 0x01) == 0x01;
+                write(addr, newP);
+                updateNZ(newP);
+                break;
+            }
             case 0x70: { // br<V,1>
                 byte offset = read(pc++);
                 if (flagV) {
@@ -484,6 +581,12 @@ public class Cpu {
             case (byte) 0x8A: { // tr<X,A>
                 regAcc = regX;
                 updateNZ(regAcc);
+                break;
+            }
+            case (byte) 0x8C: { // st<Y,abs>
+                int addr = readDouble(pc);
+                pc += 2;
+                write(addr, regY);
                 break;
             }
             case (byte) 0x8D: { // st<A,abs>
@@ -558,6 +661,12 @@ public class Cpu {
             case (byte) 0xAA: { // tr<A,X>
                 regX = regAcc;
                 updateNZ(regX);
+                break;
+            }
+            case (byte) 0xAC: { // ld<Y,abs>
+                regY = read(readDouble(pc));
+                pc += 2;
+                updateNZ(regY);
                 break;
             }
             case (byte) 0xAD: { // ld<A,abs>
@@ -636,6 +745,29 @@ public class Cpu {
                 updateNZ(regX);
                 break;
             }
+            case (byte) 0xCC: { // cmp<Y,abs>
+                byte m = read(readDouble(pc));
+                pc += 2;
+                updateNZ((byte) (regY - m));
+                flagC = (regY & 0xFF) >= (m & 0xFF);
+                break;
+            }
+            case (byte) 0xCD: { // cmp<A,abs>
+                byte m = read(readDouble(pc));
+                pc += 2;
+                updateNZ((byte) (regY - m));
+                flagC = (regY & 0xFF) >= (m & 0xFF);
+                break;
+            }
+            case (byte) 0xCE: { // DEC<abs>
+                int addr = readDouble(pc);
+                pc += 2;
+                byte p = read(addr);
+                p--;
+                write(addr, p);
+                updateNZ(p);
+                break;
+            }
             case (byte) 0xD0: { // br<Z,0>
                 byte offset = read(pc++);
                 if (!flagZ) {
@@ -712,6 +844,36 @@ public class Cpu {
                 break;
             }
             case (byte) 0xEA: { // NOP
+                break;
+            }
+            case (byte) 0xEC: { // cmp<X,abs>
+                byte m = read(readDouble(pc));
+                pc += 2;
+                updateNZ((byte) (regX - m));
+                flagC = (regX & 0xFF) >= (m & 0xFF);
+                break;
+            }
+            case (byte) 0xED: { // SBC<abs>
+                byte p = (byte) (read(readDouble(pc)) ^ 0xFF); // TODO: test?
+                pc += 2;
+                int result = (regAcc & 0xFF) + (p & 0xFF) + (flagC ? 1 : 0);
+                flagC = result > 0xFF;
+
+                // P[V] = ~(x^y) & (x^r) & 0x80;
+                flagV = ((regAcc < 0) != ((byte) result < 0)) && ((regAcc < 0) == (p < 0));
+                // TODO: write better
+
+                regAcc = (byte) result;
+                updateNZ(regAcc);
+                break;
+            }
+            case (byte) 0xEE: { // INC<abs>
+                int addr = readDouble(pc);
+                pc += 2;
+                byte p = read(addr);
+                p++;
+                write(addr, p);
+                updateNZ(p);
                 break;
             }
             case (byte) 0xF0: { // br<Z,1>
