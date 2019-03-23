@@ -7,8 +7,8 @@ class Cartridge {
 
     int prgSize;
     int chrSize;
-    byte[] prg;
-    byte[] chr;
+    private byte[] prg;
+    private byte[] chr;
     int mapperNumber;
     boolean persistentMemory;
     NametableMirroring nametableMirroring;
