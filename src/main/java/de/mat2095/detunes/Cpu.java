@@ -444,6 +444,14 @@ class Cpu {
         pc++;
 
         switch (op) {
+//            case 0x00: { // INT<BRK>
+//                pushStack((byte) (pc >>> 8));
+//                pushStack((byte) (pc & 0xFF));
+//                pushStack((byte) (getP() | 0b00010000));
+//                flagI = true;
+//                pc = readDouble(0xFFFE);
+//                break;
+//            }
             case 0x01: { // ORA<izx>
                 execOra(readIzxAddr());
                 break;
@@ -453,8 +461,7 @@ class Cpu {
                 break;
             }
             case 0x08: { // PHP
-                byte p = (byte) (getP() | 0b00010000);
-                pushStack(p);
+                pushStack((byte) (getP() | 0b00010000));
                 break;
             }
             case 0x06: { // ASL<zp>
@@ -654,6 +661,10 @@ class Cpu {
                 execLsr(readZpxAddr());
                 break;
             }
+//            case 0x58: { // flag<I,0>
+//                flagI = false;
+//                break;
+//            }
             case 0x59: { // EOR<aby>
                 execEor(readAbyAddr());
                 break;
