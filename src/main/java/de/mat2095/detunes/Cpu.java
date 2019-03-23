@@ -460,12 +460,12 @@ class Cpu {
                 execOra(readZpAddr());
                 break;
             }
-            case 0x08: { // PHP
-                pushStack((byte) (getP() | 0b00010000));
-                break;
-            }
             case 0x06: { // ASL<zp>
                 execAsl(readZpAddr());
+                break;
+            }
+            case 0x08: { // PHP
+                pushStack((byte) (getP() | 0b00010000));
                 break;
             }
             case 0x09: { // ORA<imm>
@@ -897,7 +897,7 @@ class Cpu {
                 execBr(flagC);
                 break;
             }
-            case (byte) 0xB1: { // ld<A,izy>,
+            case (byte) 0xB1: { // ld<A,izy>
                 regAcc = read(readIzyAddr());
                 updateNZ(regAcc);
                 break;
