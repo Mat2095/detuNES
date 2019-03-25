@@ -241,11 +241,13 @@ class Cpu {
     }
 
     private void pushStack(byte b) {
-        write(0x100 + (regSP--), b);
+        write(0x100 | (regSP & 0xFF), b);
+        regSP--;
     }
 
     private byte popStack() {
-        return read(0x100 + (++regSP));
+        regSP++;
+        return read(0x100 | (regSP & 0xFF));
     }
 
     // <address-readers>
@@ -377,30 +379,20 @@ class Cpu {
         updateNZ(p);
     }
 
-    private void execAdc(int addr) {
-        byte p = read(addr);
+    private void addToAcc(byte p) {
         int result = (regAcc & 0xFF) + (p & 0xFF) + (flagC ? 1 : 0);
         flagC = result > 0xFF;
-
-        // P[V] = ~(x^y) & (x^r) & 0x80;
         flagV = ((regAcc < 0) != ((byte) result < 0)) && ((regAcc < 0) == (p < 0));
-        // TODO: write better
-
         regAcc = (byte) result;
         updateNZ(regAcc);
     }
 
+    private void execAdc(int addr) {
+        addToAcc(read(addr));
+    }
+
     private void execSbc(int addr) {
-        byte p = (byte) (read(addr) ^ 0xFF); // TODO: test?
-        int result = (regAcc & 0xFF) + (p & 0xFF) + (flagC ? 1 : 0);
-        flagC = result > 0xFF;
-
-        // P[V] = ~(x^y) & (x^r) & 0x80;
-        flagV = ((regAcc < 0) != ((byte) result < 0)) && ((regAcc < 0) == (p < 0));
-        // TODO: write better
-
-        regAcc = (byte) result;
-        updateNZ(regAcc);
+        addToAcc((byte) (read(addr) ^ 0xFF));
     }
 
     // </operations>
