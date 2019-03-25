@@ -868,8 +868,7 @@ class Cpu {
                 break;
             }
             case (byte) 0x9A: { // tr<X,S>
-                regSP = regX;
-                updateNZ(regSP);
+                regSP = regX; // N and Z flags are not updated in this special case!
                 break;
             }
             case (byte) 0x9D: { // st<A,abx>
