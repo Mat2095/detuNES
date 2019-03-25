@@ -55,7 +55,7 @@ class Cpu {
         OP_NAMES[0x51] = "EOR<izy>";
         OP_NAMES[0x55] = "EOR<zpx>";
         OP_NAMES[0x56] = "LSR<zpx>";
-//        OP_NAMES[0x58] = "flag<I,0>";
+        OP_NAMES[0x58] = "flag<I,0>";
         OP_NAMES[0x59] = "EOR<aby>";
         OP_NAMES[0x5D] = "EOR<abx>";
         OP_NAMES[0x5E] = "LSR<abx>";
@@ -653,10 +653,10 @@ class Cpu {
                 execLsr(readZpxAddr());
                 break;
             }
-//            case 0x58: { // flag<I,0>
-//                flagI = false;
-//                break;
-//            }
+            case 0x58: { // flag<I,0>
+                flagI = false;
+                break;
+            }
             case 0x59: { // EOR<aby>
                 execEor(readAbyAddr());
                 break;
@@ -734,7 +734,7 @@ class Cpu {
                 break;
             }
             case 0x78: { // flag<I,1>
-                flagI = false;
+                flagI = true;
                 break;
             }
             case 0x79: { // ADC<aby>
