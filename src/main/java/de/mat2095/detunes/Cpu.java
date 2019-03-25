@@ -158,7 +158,11 @@ class Cpu {
         OP_NAMES[0xFE] = "INC<abx>";
     }
 
-    private byte[] ram;
+    private final RunConfiguration runConfig;
+    private long instrs;
+    private String lastMemText;
+
+    private final byte[] ram;
     private Cartridge cartridge;
 
     // registers
@@ -166,9 +170,38 @@ class Cpu {
     int pc;
     private boolean flagC, flagZ, flagI, flagD, flagV, flagN; // Carry, Zero, Interrupt, Decimal, oVerflow, Negative
 
-    Cpu(Cartridge cartridge) {
+    Cpu(Cartridge cartridge, RunConfiguration runConfig) {
         this.ram = new byte[0x0800]; // 2KiB
         this.cartridge = cartridge;
+        this.runConfig = runConfig;
+    }
+
+    void power() {
+        instrs = 0;
+
+        setP((byte) 0b00110100);
+        regAcc = regX = regY = 0;
+        regSP = (byte) 0xFD;
+
+        if (runConfig.startPC != null) {
+            pc = runConfig.startPC;
+        } else {
+            pc = readDouble(0xFFFC);
+        }
+    }
+
+    void run() {
+        while (true) {
+            exec();
+            instrs++;
+            if (instrs % runConfig.sleepPeriodicity == 0) {
+                try {
+                    Thread.sleep(runConfig.sleepDuration);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     private byte read(int addr) {
@@ -397,21 +430,48 @@ class Cpu {
 
     // </operations>
 
-    void power() {
-        setP((byte) 0b00110100);
-        regAcc = regX = regY = 0;
-        regSP = (byte) 0xFD;
+    private void printDebug(byte op) {
+        boolean printGeneralInfoLine = runConfig.debugPrintGeneralInfo || runConfig.debugPrintMem != null;
+        if (printGeneralInfoLine) {
+            StringBuilder outputLine = new StringBuilder("exec");
+            if (runConfig.debugPrintMem != null) {
+                outputLine.append("\u00a0 ");
+                for (int memAddr : runConfig.debugPrintMem) {
+                    outputLine.append(" ").append(Util.getHexString(read(memAddr)));
+                }
+            }
+            if (runConfig.debugPrintGeneralInfo) {
+                outputLine
+                    .append("\u00a0  SP: ").append(Util.getHexString(regSP))
+                    .append("\u00a0 X: ").append(Util.getHexString(regX))
+                    .append("\u00a0 Y: ").append(Util.getHexString(regY))
+                    .append("\u00a0 Flags: ").append(Util.getBinString(getP()))
+                    .append("\u00a0 pc: ").append(Util.getHexString16bit(pc))
+                    .append("\u00a0 Acc: ").append(Util.getHexString(regAcc))
+                    .append("\u00a0  op: ").append(Util.getHexString(op))
+                    .append("\u00a0 ").append(OP_NAMES[op & 0xFF] != null ? OP_NAMES[op & 0xFF] : "");
+            }
+            System.out.println(outputLine);
+        }
 
-        pc = readDouble(0xFFFC);
-    }
-
-    void run() {
-        while (true) {
-            exec();
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        if (runConfig.debugPrintMemText != null) {
+            StringBuilder memTextBuilder = new StringBuilder();
+            for (int addr = runConfig.debugPrintMemText; addr < runConfig.debugPrintMemText + 0x60; addr++) {
+                byte b = read(addr);
+                if (b == 0) {
+                    break;
+                }
+                memTextBuilder.append((char) b);
+            }
+            String memText = memTextBuilder.toString();
+            memText = memText.replace('\n', ' ');
+            if (printGeneralInfoLine) {
+                System.out.println("       " + memText);
+            } else {
+                if (!memText.equals(lastMemText)) {
+                    System.out.println(memText);
+                    lastMemText = memText;
+                }
             }
         }
     }
@@ -423,16 +483,7 @@ class Cpu {
         }
 
         byte op = read(pc);
-        System.out.println("exec"
-            + "\u00a0  err: " + Util.getHexString(read(0x02)) + " " + Util.getHexString(read(0x03))
-            + "\u00a0  SP: " + Util.getHexString(regSP)
-            + "\u00a0 X: " + Util.getHexString(regX)
-            + "\u00a0 Y: " + Util.getHexString(regY)
-            + "\u00a0 Flags: " + Util.getBinString(getP())
-            + "\u00a0 pc: 0x" + Util.getHexString16bit(pc)
-            + "\u00a0 Acc: " + Util.getHexString(regAcc)
-            + "\u00a0  op: " + Util.getHexString(op)
-            + "\u00a0 " + (OP_NAMES[op & 0xFF] != null ? OP_NAMES[op & 0xFF] : ""));
+        printDebug(op);
         pc++;
 
         switch (op) {

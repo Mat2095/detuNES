@@ -12,16 +12,35 @@ import java.nio.file.Paths;
 class Main {
 
     public static void main(String[] args) throws IOException {
+//        // play game
 //        File romFile = new File(args[0]).getCanonicalFile();
 //        System.out.println("Reading ROM-file: " + romFile);
-//        play(romFile.toPath());
+//        // assuming 4 cycles per instruction on average, 1ms per 450 instructions should result in about the correct speed
+//        RunConfiguration runConfig = new RunConfiguration(1, 450);
+//        run(romFile.toPath(), runConfig);
 
+//        // analyse roms
 //        Files.find(Paths.get("roms"),
 //            Integer.MAX_VALUE,
 //            (filePath, fileAttr) -> fileAttr.isRegularFile() && filePath.toString().toLowerCase().endsWith(".nes"))
 //            .forEach(Main::analyseRom);
 
-        test();
+//        // nestest
+//        Path testFile = Paths.get("roms/tests/nestest.nes");
+//        RunConfiguration runConfig = new RunConfiguration(1, 2);
+//        runConfig.startPC = 0xC000; // pc to run all tests
+//        runConfig.debugPrintGeneralInfo = true;
+//        runConfig.debugPrintMem = new int[]{0x0002, 0x0003};
+//        run(testFile, runConfig);
+
+        //instr_test
+        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/01-basics.nes");
+//        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/02-implied.nes");
+        RunConfiguration runConfig = new RunConfiguration(1, 1000);
+//        runConfig.debugPrintGeneralInfo = true;
+//        runConfig.debugPrintMem = new int[]{0x6000, 0x6001, 0x6002, 0x6003};
+        runConfig.debugPrintMemText = 0x6004;
+        run(testFile, runConfig);
     }
 
     private static void analyseRom(Path path) {
@@ -58,21 +77,12 @@ class Main {
         }
     }
 
-    private static void play(Path gameFile) throws IOException {
-        byte[] testBytes = Files.readAllBytes(gameFile);
+    private static void run(Path nesFile, RunConfiguration runConfig) throws IOException {
+        byte[] testBytes = Files.readAllBytes(nesFile);
         Cartridge testCartridge = new Cartridge(testBytes);
-        Cpu cpu = new Cpu(testCartridge);
-        cpu.power();
-        cpu.run();
-    }
 
-    private static void test() throws IOException {
-        Path testFile = Paths.get("roms/tests/nestest.nes");
-        byte[] testBytes = Files.readAllBytes(testFile);
-        Cartridge testCartridge = new Cartridge(testBytes);
-        Cpu cpu = new Cpu(testCartridge);
+        Cpu cpu = new Cpu(testCartridge, runConfig);
         cpu.power();
-        cpu.pc = 0x0C000; // pc to run all tests
         cpu.run();
     }
 }
