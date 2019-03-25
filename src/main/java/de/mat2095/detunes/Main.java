@@ -34,8 +34,11 @@ class Main {
 //        run(testFile, runConfig);
 
         //instr_test
-        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/01-basics.nes");
+//        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/01-basics.nes");
 //        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/02-implied.nes");
+//        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/03-immediate.nes");
+//        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/04-zero_page.nes");
+        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/05-zp_xy.nes");
         RunConfiguration runConfig = new RunConfiguration(1, 1000);
 //        runConfig.debugPrintGeneralInfo = true;
 //        runConfig.debugPrintMem = new int[]{0x6000, 0x6001, 0x6002, 0x6003};

@@ -847,7 +847,7 @@ class Cpu {
                 break;
             }
             case (byte) 0x94: { // st<Y,zpx>
-                write(readZpxAddr(), regAcc);
+                write(readZpxAddr(), regY);
                 break;
             }
             case (byte) 0x95: { // st<A,zpx>
