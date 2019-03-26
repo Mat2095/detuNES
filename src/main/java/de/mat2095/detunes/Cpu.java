@@ -5,7 +5,7 @@ class Cpu {
     private static final String[] OP_NAMES = new String[256];
 
     static {
-//        OP_NAMES[0x00] = "INT<BRK>";
+        OP_NAMES[0x00] = "INT<BRK>";
         OP_NAMES[0x01] = "ORA<izx>";
         OP_NAMES[0x05] = "ORA<zp>";
         OP_NAMES[0x06] = "ASL<zp>";
@@ -487,14 +487,15 @@ class Cpu {
         pc++;
 
         switch (op) {
-//            case 0x00: { // INT<BRK>
-//                pushStack((byte) (pc >>> 8));
-//                pushStack((byte) (pc & 0xFF));
-//                pushStack((byte) (getP() | 0b00010000));
-//                flagI = true;
-//                pc = readDouble(0xFFFE);
-//                break;
-//            }
+            case 0x00: { // INT<BRK>
+                pc++; // padding-byte
+                pushStack((byte) (pc >>> 8));
+                pushStack((byte) (pc & 0xFF));
+                pushStack((byte) (getP() | 0b00010000));
+                flagI = true;
+                pc = readDouble(0xFFFE);
+                break;
+            }
             case 0x01: { // ORA<izx>
                 execOra(readIzxAddr());
                 break;
