@@ -184,14 +184,13 @@ class Cpu {
 
     private byte read(int addr) {
         if (addr < 0x0000 || addr > 0xFFFF) {
-            throw new IllegalArgumentException("CPU addr out of range: 0x" + Integer.toHexString(addr));
+            throw new IllegalArgumentException("CPU addr out of range: " + Util.getHexString16bit(addr));
         }
 
         if (addr < 0x2000) {
             return ram[addr % 0x0800];
         } else if (addr < 0x4000) {
-            throw new IllegalArgumentException("ppu registers not yet implemented: 0x" + Integer.toHexString(addr));
-            // addr % 0x0008
+            return emu.ppu.read(addr);
         } else if (addr < 0x4018) {
             throw new IllegalArgumentException("apu / io registers not yet implemented");
         } else if (addr < 0x4020) {
@@ -207,14 +206,13 @@ class Cpu {
 
     private void write(int addr, byte value) {
         if (addr < 0x0000 || addr > 0xFFFF) {
-            throw new IllegalArgumentException("CPU addr out of range: 0x" + Integer.toHexString(addr));
+            throw new IllegalArgumentException("CPU addr out of range: " + Util.getHexString16bit(addr));
         }
 
         if (addr < 0x2000) {
             ram[addr % 0x0800] = value;
         } else if (addr < 0x4000) {
-            throw new IllegalArgumentException("ppu registers not yet implemented: 0x" + Integer.toHexString(addr));
-            // addr % 0x0008
+            emu.ppu.write(addr, value);
         } else if (addr < 0x4018) {
             throw new IllegalArgumentException("apu / io registers not yet implemented");
         } else if (addr < 0x4020) {

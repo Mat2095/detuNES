@@ -8,6 +8,7 @@ import java.nio.file.Path;
 class Emulator {
 
     private final Cpu cpu;
+    final Ppu ppu;
     Cartridge cartridge;
     private final RunConfiguration runConfig;
     private long cpuInstrs;
@@ -16,6 +17,7 @@ class Emulator {
         byte[] nesBytes = Files.readAllBytes(nesFile);
         cartridge = new Cartridge(nesBytes);
         cpu = new Cpu();
+        ppu = new Ppu();
         this.runConfig = runConfig;
     }
 
