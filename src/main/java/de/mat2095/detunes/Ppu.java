@@ -8,6 +8,9 @@ class Ppu {
         this.registers = new byte[8];
     }
 
+    void power() {
+    }
+
     byte read(int addr) {
         if (addr < 0x2000 || addr > 0x3FFF) {
             throw new IllegalArgumentException("PPU addr out of range: " + Util.getHexString16bit(addr));

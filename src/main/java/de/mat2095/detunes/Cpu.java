@@ -191,10 +191,8 @@ class Cpu {
             return ram[addr % 0x0800];
         } else if (addr < 0x4000) {
             return emu.ppu.read(addr);
-        } else if (addr < 0x4018) {
-            throw new IllegalArgumentException("apu / io registers not yet implemented");
         } else if (addr < 0x4020) {
-            throw new IllegalArgumentException("api / io test functionality not yet implemented");
+            return emu.readApuIO(addr);
         } else {
             return emu.cartridge.read(addr);
         }
@@ -213,10 +211,8 @@ class Cpu {
             ram[addr % 0x0800] = value;
         } else if (addr < 0x4000) {
             emu.ppu.write(addr, value);
-        } else if (addr < 0x4018) {
-            throw new IllegalArgumentException("apu / io registers not yet implemented");
         } else if (addr < 0x4020) {
-            throw new IllegalArgumentException("api / io test functionality not yet implemented");
+            emu.writeApuIO(addr, value);
         } else {
             emu.cartridge.write(addr, value);
         }

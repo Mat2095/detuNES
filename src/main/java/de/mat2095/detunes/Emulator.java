@@ -9,6 +9,7 @@ class Emulator {
 
     private final Cpu cpu;
     final Ppu ppu;
+    final Apu apu;
     Cartridge cartridge;
     private final RunConfiguration runConfig;
     private long cpuInstrs;
@@ -18,6 +19,7 @@ class Emulator {
         cartridge = new Cartridge(nesBytes);
         cpu = new Cpu();
         ppu = new Ppu();
+        apu = new Apu();
         this.runConfig = runConfig;
     }
 
@@ -27,6 +29,10 @@ class Emulator {
             cpu.pc = runConfig.startPC;
         }
         cpuInstrs = 0;
+
+        ppu.power();
+
+        apu.power();
     }
 
     void run() {
@@ -41,6 +47,40 @@ class Emulator {
                     e.printStackTrace();
                 }
             }
+        }
+    }
+
+    byte readApuIO(int addr) {
+        if (addr < 0x4000 || addr > 0x401F) {
+            throw new IllegalArgumentException("APU/IO addr out of range: " + Util.getHexString16bit(addr));
+        }
+
+        if (addr == 0x4014) {
+            throw new IllegalArgumentException("Can't read from OAMDMA: " + Util.getHexString16bit(addr));
+        } else if (addr == 0x4016) {
+            throw new IllegalArgumentException("Joypad-0 (read) not yet implemented: " + Util.getHexString16bit(addr));
+        } else if (addr == 0x4017) {
+            throw new IllegalArgumentException("Joypad-1 (read) not yet implemented: " + Util.getHexString16bit(addr));
+        } else if (addr >= 0x4018) {
+            throw new IllegalArgumentException("APU/IO test functionality not yet implemented: " + Util.getHexString16bit(addr));
+        } else {
+            return apu.read(addr);
+        }
+    }
+
+    void writeApuIO(int addr, byte value) {
+        if (addr < 0x4000 || addr > 0x401F) {
+            throw new IllegalArgumentException("APU/IO addr out of range: " + Util.getHexString16bit(addr));
+        }
+
+        if (addr == 0x4014) {
+            throw new IllegalArgumentException("OAMDMA (write) not yet implemented: " + Util.getHexString16bit(addr));
+        } else if (addr == 0x4016) {
+            throw new IllegalArgumentException("Joypad write strobe not yet implemented: " + Util.getHexString16bit(addr));
+        } else if (addr >= 0x4018) {
+            throw new IllegalArgumentException("APU/IO test functionality not yet implemented: " + Util.getHexString16bit(addr));
+        } else {
+            apu.write(addr, value);
         }
     }
 }
