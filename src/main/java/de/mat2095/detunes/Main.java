@@ -33,7 +33,7 @@ class Main {
 //        runConfig.debugPrintMem = new int[]{0x0002, 0x0003};
 //        run(testFile, runConfig);
 
-        //instr_test
+        // instr_test
 //        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/01-basics.nes");
 //        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/02-implied.nes");
 //        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/03-immediate.nes");
@@ -92,11 +92,8 @@ class Main {
     }
 
     private static void run(Path nesFile, RunConfiguration runConfig) throws IOException {
-        byte[] testBytes = Files.readAllBytes(nesFile);
-        Cartridge testCartridge = new Cartridge(testBytes);
-
-        Cpu cpu = new Cpu(testCartridge, runConfig);
-        cpu.power();
-        cpu.run();
+        Emulator emu = new Emulator(nesFile, runConfig);
+        emu.power();
+        emu.run();
     }
 }

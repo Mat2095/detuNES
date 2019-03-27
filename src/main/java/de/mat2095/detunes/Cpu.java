@@ -158,51 +158,29 @@ class Cpu {
         OP_NAMES[0xFE] = "INC<abx>";
     }
 
-    private final RunConfiguration runConfig;
-    private long instrs;
     private String lastMemText;
 
+    private Emulator emu;
     private final byte[] ram;
-    private Cartridge cartridge;
 
     // registers
     private byte regAcc, regX, regY, regSP;
     int pc;
     private boolean flagC, flagZ, flagI, flagD, flagV, flagN; // Carry, Zero, Interrupt, Decimal, oVerflow, Negative
 
-    Cpu(Cartridge cartridge, RunConfiguration runConfig) {
+    Cpu() {
         this.ram = new byte[0x0800]; // 2KiB
-        this.cartridge = cartridge;
-        this.runConfig = runConfig;
     }
 
-    void power() {
-        instrs = 0;
-
+    void power(Emulator emu) {
+        this.emu = emu;
         setP((byte) 0b00110100);
         regAcc = regX = regY = 0;
         regSP = (byte) 0xFD;
 
-        if (runConfig.startPC != null) {
-            pc = runConfig.startPC;
-        } else {
-            pc = readDouble(0xFFFC);
-        }
+        pc = readDouble(0xFFFC);
     }
 
-    void run() {
-        while (true) {
-            exec();
-            instrs++;
-            if (instrs % runConfig.sleepPeriodicity == 0) {
-                try {
-                    Thread.sleep(runConfig.sleepDuration);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
 
     private byte read(int addr) {
         if (addr < 0x0000 || addr > 0xFFFF) {
@@ -219,7 +197,7 @@ class Cpu {
         } else if (addr < 0x4020) {
             throw new IllegalArgumentException("api / io test functionality not yet implemented");
         } else {
-            return cartridge.read(addr);
+            return emu.cartridge.read(addr);
         }
     }
 
@@ -242,7 +220,7 @@ class Cpu {
         } else if (addr < 0x4020) {
             throw new IllegalArgumentException("api / io test functionality not yet implemented");
         } else {
-            cartridge.write(addr, value);
+            emu.cartridge.write(addr, value);
         }
     }
 
@@ -430,7 +408,7 @@ class Cpu {
 
     // </operations>
 
-    private void printDebug(byte op) {
+    void printDebug(RunConfiguration runConfig) {
         boolean printGeneralInfoLine = runConfig.debugPrintGeneralInfo || runConfig.debugPrintMem != null;
         if (printGeneralInfoLine) {
             StringBuilder outputLine = new StringBuilder("exec");
@@ -441,6 +419,7 @@ class Cpu {
                 }
             }
             if (runConfig.debugPrintGeneralInfo) {
+                byte op = read(pc);
                 outputLine
                     .append("\u00a0  SP: ").append(Util.getHexString(regSP))
                     .append("\u00a0 X: ").append(Util.getHexString(regX))
@@ -476,15 +455,13 @@ class Cpu {
         }
     }
 
-    private void exec() {
+    void exec() {
 
         if (pc < 0 || pc > 0xFFFF) {
             throw new IllegalStateException("pc is in illegal state: 0x" + Util.getHexString16bit(pc));
         }
 
-        byte op = read(pc);
-        printDebug(op);
-        pc++;
+        byte op = read(pc++);
 
         switch (op) {
             case 0x00: { // INT<BRK>
