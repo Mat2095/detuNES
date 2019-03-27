@@ -8,9 +8,9 @@ import java.nio.file.Path;
 class Emulator {
 
     private final Cpu cpu;
-    final Ppu ppu;
-    final Apu apu;
-    Cartridge cartridge;
+    private final Ppu ppu;
+    private final Apu apu;
+    private final Cartridge cartridge;
     private final RunConfiguration runConfig;
     private long cpuInstrs;
 
@@ -50,37 +50,53 @@ class Emulator {
         }
     }
 
-    byte readApuIO(int addr) {
-        if (addr < 0x4000 || addr > 0x401F) {
-            throw new IllegalArgumentException("APU/IO addr out of range: " + Util.getHexString16bit(addr));
+    byte read(int addr) {
+        if (addr < 0x0000 || addr > 0xFFFF) {
+            throw new IllegalArgumentException("addr out of range: " + Util.getHexString16bit(addr));
         }
 
-        if (addr == 0x4014) {
-            throw new IllegalArgumentException("Can't read from OAMDMA: " + Util.getHexString16bit(addr));
-        } else if (addr == 0x4016) {
-            throw new IllegalArgumentException("Joypad-0 (read) not yet implemented: " + Util.getHexString16bit(addr));
-        } else if (addr == 0x4017) {
-            throw new IllegalArgumentException("Joypad-1 (read) not yet implemented: " + Util.getHexString16bit(addr));
-        } else if (addr >= 0x4018) {
-            throw new IllegalArgumentException("APU/IO test functionality not yet implemented: " + Util.getHexString16bit(addr));
+        if (addr < 0x2000) {
+            return cpu.read(addr);
+        } else if (addr < 0x4000) {
+            return ppu.read(addr);
+        } else if (addr < 0x4020) {
+            if (addr == 0x4014) {
+                throw new IllegalArgumentException("Can't read from OAMDMA: " + Util.getHexString16bit(addr));
+            } else if (addr == 0x4016) {
+                throw new IllegalArgumentException("Joypad-0 (read) not yet implemented: " + Util.getHexString16bit(addr));
+            } else if (addr == 0x4017) {
+                throw new IllegalArgumentException("Joypad-1 (read) not yet implemented: " + Util.getHexString16bit(addr));
+            } else if (addr >= 0x4018) {
+                throw new IllegalArgumentException("APU/IO test functionality not yet implemented: " + Util.getHexString16bit(addr));
+            } else {
+                return apu.read(addr);
+            }
         } else {
-            return apu.read(addr);
+            return cartridge.read(addr);
         }
     }
 
-    void writeApuIO(int addr, byte value) {
-        if (addr < 0x4000 || addr > 0x401F) {
-            throw new IllegalArgumentException("APU/IO addr out of range: " + Util.getHexString16bit(addr));
+    void write(int addr, byte value) {
+        if (addr < 0x0000 || addr > 0xFFFF) {
+            throw new IllegalArgumentException("addr out of range: " + Util.getHexString16bit(addr));
         }
 
-        if (addr == 0x4014) {
-            throw new IllegalArgumentException("OAMDMA (write) not yet implemented: " + Util.getHexString16bit(addr));
-        } else if (addr == 0x4016) {
-            throw new IllegalArgumentException("Joypad write strobe not yet implemented: " + Util.getHexString16bit(addr));
-        } else if (addr >= 0x4018) {
-            throw new IllegalArgumentException("APU/IO test functionality not yet implemented: " + Util.getHexString16bit(addr));
+        if (addr < 0x2000) {
+            cpu.write(addr, value);
+        } else if (addr < 0x4000) {
+            ppu.write(addr, value);
+        } else if (addr < 0x4020) {
+            if (addr == 0x4014) {
+                throw new IllegalArgumentException("OAMDMA (write) not yet implemented: " + Util.getHexString16bit(addr));
+            } else if (addr == 0x4016) {
+                throw new IllegalArgumentException("Joypad write strobe not yet implemented: " + Util.getHexString16bit(addr));
+            } else if (addr >= 0x4018) {
+                throw new IllegalArgumentException("APU/IO test functionality not yet implemented: " + Util.getHexString16bit(addr));
+            } else {
+                apu.write(addr, value);
+            }
         } else {
-            apu.write(addr, value);
+            cartridge.write(addr, value);
         }
     }
 }
