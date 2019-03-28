@@ -2,6 +2,7 @@ plugins {
     id "java"
     id "application"
     id "com.github.johnrengelman.shadow" version "5.0.0"
+    id "de.undercouch.download" version "3.4.3"
 }
 
 sourceCompatibility = 1.8
@@ -21,6 +22,9 @@ repositories {
 
 dependencies {
     compile "com.github.strikerx3:jxinput:1.0.0"
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.4.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.4.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.4.0'
 }
 
 
@@ -30,6 +34,39 @@ run {
     if (project.hasProperty("appArgs")) {
         args Eval.me(appArgs)
     }
+}
+
+
+task prepareTest {
+    def tmpZip = new File(buildDir, 'instr_test-v5.zip')
+    def destFolder = new File("roms")
+    download {
+        src 'http://blargg.8bitalley.com/nes-tests/instr_test-v5.zip'
+        dest tmpZip
+        overwrite false
+    }
+    copy {
+        from(zipTree(tmpZip)) {
+            include "instr_test-v5/**/*.nes"
+            includeEmptyDirs = false
+        }
+        into destFolder
+        eachFile {
+            if (it.getRelativePath().getFile(destFolder).exists()) {
+                it.exclude()
+            }
+        }
+    }
+    download {
+        src "http://nickmass.com/images/nestest.nes"
+        dest new File(destFolder, "nestest/nestest.nes")
+        overwrite false
+    }
+}
+
+test {
+    dependsOn prepareTest
+    useJUnitPlatform()
 }
 
 

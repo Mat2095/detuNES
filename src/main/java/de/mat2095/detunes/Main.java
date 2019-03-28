@@ -3,58 +3,29 @@ package de.mat2095.detunes;
 import com.github.strikerx3.jxinput.XInputComponents;
 import com.github.strikerx3.jxinput.XInputDevice;
 import com.github.strikerx3.jxinput.exceptions.XInputNotLoadedException;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 
 class Main {
 
     public static void main(String[] args) throws IOException {
-//        // play game
-//        File romFile = new File(args[0]).getCanonicalFile();
-//        System.out.println("Reading ROM-file: " + romFile);
-//        // assuming 4 cycles per instruction on average, 1ms per 450 instructions should result in about the correct speed
-//        RunConfiguration runConfig = new RunConfiguration(1, 450);
-//        run(romFile.toPath(), runConfig);
+        // play game
+        File romFile = new File(args[0]).getCanonicalFile();
+        System.out.println("Reading ROM-file: " + romFile);
+        // assuming 4 cycles per instruction on average, 1ms per 450 instructions should result in about the correct speed
+        RunConfiguration runConfig = new RunConfiguration(1, 450);
+        Emulator emu = new Emulator(romFile.toPath(), runConfig);
+        emu.power();
+        emu.run();
 
 //        // analyse roms
 //        Files.find(Paths.get("roms"),
 //            Integer.MAX_VALUE,
 //            (filePath, fileAttr) -> fileAttr.isRegularFile() && filePath.toString().toLowerCase().endsWith(".nes"))
 //            .forEach(Main::analyseRom);
-
-//        // nestest
-//        Path testFile = Paths.get("roms/tests/nestest.nes");
-//        RunConfiguration runConfig = new RunConfiguration(1, 2);
-//        runConfig.startPC = 0xC000; // pc to run all tests
-//        runConfig.debugPrintGeneralInfo = true;
-//        runConfig.debugPrintMem = new int[]{0x0002, 0x0003};
-//        run(testFile, runConfig);
-
-        // instr_test
-//        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/01-basics.nes");
-//        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/02-implied.nes");
-//        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/03-immediate.nes");
-//        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/04-zero_page.nes");
-//        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/05-zp_xy.nes");
-//        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/06-absolute.nes");
-//        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/07-abs_xy.nes");
-//        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/08-ind_x.nes");
-//        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/09-ind_y.nes");
-//        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/10-branches.nes");
-//        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/11-stack.nes");
-//        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/12-jmp_jsr.nes");
-//        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/13-rts.nes");
-//        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/14-rti.nes");
-//        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/15-brk.nes");
-        Path testFile = Paths.get("roms/tests/instr_test-v5/rom_singles/16-special.nes");
-        RunConfiguration runConfig = new RunConfiguration(1, 1000);
-//        runConfig.debugPrintGeneralInfo = true;
-//        runConfig.debugPrintMem = new int[]{0x6000, 0x6001, 0x6002, 0x6003};
-        runConfig.debugPrintMemText = 0x6004;
-        run(testFile, runConfig);
     }
 
     private static void analyseRom(Path path) {
@@ -89,11 +60,5 @@ class Main {
                 e.printStackTrace();
             }
         }
-    }
-
-    private static void run(Path nesFile, RunConfiguration runConfig) throws IOException {
-        Emulator emu = new Emulator(nesFile, runConfig);
-        emu.power();
-        emu.run();
     }
 }
