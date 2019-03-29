@@ -1,5 +1,7 @@
 ## detuNES
 
+[![Build Status](https://travis-ci.com/Mat2095/detuNES.svg?token=xy78xvtSts4sqNz8p7Dv&branch=master)](https://travis-ci.com/Mat2095/detuNES)
+
 ### Import into IntelliJ IDEA
 
 - Open the Gradle project
