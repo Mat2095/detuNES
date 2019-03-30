@@ -17,7 +17,8 @@ class Apu {
         if (addr >= 0x4000 && addr < 0x4014) {
             throw new IllegalArgumentException("Can't read from APU register: " + Util.getHexString16bit(addr));
         } else if (addr == 0x4015) {
-            throw new IllegalArgumentException("APU-Status (read) not yet implemented: " + Util.getHexString16bit(addr));
+            // TODO: implement Apu-Status (read) as far as necessary
+            return 0;
         } else {
             throw new IllegalArgumentException("APU addr out of range: " + Util.getHexString16bit(addr));
         }

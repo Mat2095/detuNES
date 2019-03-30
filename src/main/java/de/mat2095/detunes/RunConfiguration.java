@@ -3,19 +3,28 @@ package de.mat2095.detunes;
 
 public class RunConfiguration {
 
+    Integer sleepPeriodicity;
     long sleepDuration;
-    int sleepPeriodicity;
+
     Integer startPC;
+
     boolean debugPrintGeneralInfo;
     int[] debugPrintMem;
     Integer debugPrintMemText;
 
-    public RunConfiguration(long sleepDuration, int sleepPeriodicity) {
-        this.sleepDuration = sleepDuration;
-        this.sleepPeriodicity = sleepPeriodicity;
+    Integer stopAddr;
+    byte stopValueUnequal;
+
+
+    public RunConfiguration() {
+        this.sleepPeriodicity = null;
+
         this.startPC = null;
+
         this.debugPrintGeneralInfo = false;
         this.debugPrintMem = null;
         this.debugPrintMemText = null;
+
+        this.stopAddr = null;
     }
 }

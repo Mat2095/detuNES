@@ -411,16 +411,7 @@ class Cpu {
         }
 
         if (runConfig.debugPrintMemText != null) {
-            StringBuilder memTextBuilder = new StringBuilder();
-            for (int addr = runConfig.debugPrintMemText; addr < runConfig.debugPrintMemText + 0x60; addr++) {
-                byte b = emu.read(addr);
-                if (b == 0) {
-                    break;
-                }
-                memTextBuilder.append((char) b);
-            }
-            String memText = memTextBuilder.toString();
-            memText = memText.replace('\n', ' ');
+            String memText = emu.readText(runConfig.debugPrintMemText);
             if (printGeneralInfoLine) {
                 System.out.println("       " + memText);
             } else {

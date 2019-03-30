@@ -13,6 +13,7 @@ class Emulator {
     private final Cartridge cartridge;
     private final RunConfiguration runConfig;
     private long cpuInstrs;
+    private boolean stopCheckRunning;
 
     Emulator(Path nesFile, RunConfiguration runConfig) throws IOException {
         byte[] nesBytes = Files.readAllBytes(nesFile);
@@ -33,14 +34,29 @@ class Emulator {
         ppu.power();
 
         apu.power();
+
+        stopCheckRunning = false;
     }
 
     void run() {
         while (true) {
             cpu.printDebug(runConfig);
             cpu.exec();
+
+            if (runConfig.stopAddr != null) {
+                if (!stopCheckRunning) {
+                    if (read(runConfig.stopAddr) == runConfig.stopValueUnequal) {
+                        stopCheckRunning = true;
+                    }
+                } else {
+                    if (read(runConfig.stopAddr) != runConfig.stopValueUnequal) {
+                        return;
+                    }
+                }
+            }
+
             cpuInstrs++;
-            if (cpuInstrs % runConfig.sleepPeriodicity == 0) {
+            if (runConfig.sleepPeriodicity != null && cpuInstrs % runConfig.sleepPeriodicity == 0) {
                 try {
                     Thread.sleep(runConfig.sleepDuration);
                 } catch (InterruptedException e) {
@@ -48,6 +64,18 @@ class Emulator {
                 }
             }
         }
+    }
+
+    String readText(int addr) {
+        StringBuilder memTextBuilder = new StringBuilder();
+        for (; ; addr++) {
+            byte b = read(addr);
+            if (b == 0) {
+                break;
+            }
+            memTextBuilder.append((char) b);
+        }
+        return memTextBuilder.toString().replace('\n', ' ');
     }
 
     byte read(int addr) {

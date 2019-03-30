@@ -11,7 +11,7 @@ class NesIntegrationTest {
     @Test
     void nesTest() throws IOException {
         Path testFile = Paths.get("roms/nestest/nestest.nes");
-        RunConfiguration runConfig = new RunConfiguration(1, 1000);
+        RunConfiguration runConfig = new RunConfiguration();
         runConfig.startPC = 0xC000; // pc to run all tests
 //        runConfig.debugPrintGeneralInfo = true;
 //        runConfig.debugPrintMem = new int[]{0x0002, 0x0003};
