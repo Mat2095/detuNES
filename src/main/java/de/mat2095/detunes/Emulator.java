@@ -17,7 +17,7 @@ class Emulator {
 
     Emulator(Path nesFile, RunConfiguration runConfig) throws IOException {
         byte[] nesBytes = Files.readAllBytes(nesFile);
-        cartridge = new Cartridge(nesBytes);
+        cartridge = Cartridge.createCartridge(nesBytes);
         cpu = new Cpu();
         ppu = new Ppu();
         apu = new Apu();

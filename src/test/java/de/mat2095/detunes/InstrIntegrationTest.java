@@ -18,11 +18,17 @@ class InstrIntegrationTest {
     void combinedRomTest() throws IOException {
         Path testFile = Paths.get("roms/instr_test-v5/official_only.nes");
         RunConfiguration runConfig = new RunConfiguration();
-//        runConfig.debugPrintGeneralInfo = true;
-//        runConfig.debugPrintMem = new int[]{0x6000, 0x6001, 0x6002, 0x6003};
-        runConfig.debugPrintMemText = 0x6004;
-//        Emulator emu = new Emulator(testFile, runConfig);
-//        emu.power();
+        runConfig.stopAddr = 0x6000;
+        runConfig.stopValueUnequal = (byte) 0x80;
+
+        Emulator emu = new Emulator(testFile, runConfig);
+        emu.power();
+        assertTimeoutPreemptively(Duration.ofSeconds(10), emu::run, "Emulator did not stop within given time.");
+
+        byte testStatus = emu.read(runConfig.stopAddr);
+        String testMessage = emu.readText(0x6004);
+        assertEquals(0, testStatus, testMessage);
+        assertEquals("All 16 tests passed   ", testMessage, testMessage);
     }
 
     @ParameterizedTest
@@ -49,6 +55,7 @@ class InstrIntegrationTest {
         RunConfiguration runConfig = new RunConfiguration();
         runConfig.stopAddr = 0x6000;
         runConfig.stopValueUnequal = (byte) 0x80;
+
         Emulator emu = new Emulator(testFile, runConfig);
         emu.power();
         assertTimeoutPreemptively(Duration.ofSeconds(1), emu::run, "Emulator did not stop within given time.");

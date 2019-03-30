@@ -3,16 +3,20 @@ package de.mat2095.detunes;
 import java.util.Arrays;
 
 
-class Cartridge {
+abstract class Cartridge {
 
     final int prgSize;
+    final byte[] prg;
+
+    final boolean prgRamPersistent;
+    final int prgRamSize;
+    final byte[] prgRam;
+
+    private final boolean chrRam;
     final int chrSize;
-    private final byte[] prg;
     private final byte[] chr;
-    private final byte[] prgRam;
-    final int mapperNumber;
-    final boolean persistentMemory;
-    final NametableMirroring nametableMirroring;
+
+    NametableMirroring nametableMirroring;
 
     Cartridge(byte[] romData) {
 
@@ -21,53 +25,65 @@ class Cartridge {
         }
 
         prgSize = romData[4] * 0x4000;
-        chrSize = romData[5] * 0x2000;
         prg = Arrays.copyOfRange(romData, 16, 16 + prgSize);
-        chr = Arrays.copyOfRange(romData, 16 + prgSize, 16 + prgSize + chrSize);
-        prgRam = new byte[0x2000];
-        mapperNumber = ((romData[6] & 0xFF) >>> 4) | (romData[7] & 0b11110000);
-        persistentMemory = (romData[6] & 0b00000010) == 0b00000010;
-        nametableMirroring = ((romData[6] & 0b00000001) == 0b00000001) ? NametableMirroring.VERTICAL : NametableMirroring.HORIZONTAL;
 
-        if (mapperNumber != 0) {
-            throw new IllegalArgumentException("Only NROM mapper is supported, got " + mapperNumber);
-        }
-        if (prgSize != 0x4000 && prgSize != 0x8000) {
-            throw new IllegalArgumentException("Invalid PRG-size: " + prgSize);
-        }
-        if (chrSize > 0x2000) {
-            throw new IllegalArgumentException("Invalid CHR-size: " + chrSize);
+        prgRamPersistent = (romData[6] & 0b00000010) == 0b00000010;
+        prgRamSize = romData[8] != 0 ? romData[8] * 0x2000 : 0x2000;
+        prgRam = new byte[prgRamSize];
+
+        chrRam = romData[5] == 0;
+        chrSize = chrRam ? 0x2000 : romData[5] * 0x2000;
+        chr = chrRam ? new byte[chrSize] : Arrays.copyOfRange(romData, 16 + prgSize, 16 + prgSize + chrSize);
+
+        nametableMirroring = ((romData[6] & 0b00000001) == 0b00000001) ? NametableMirroring.VERTICAL : NametableMirroring.HORIZONTAL;
+    }
+
+    static Cartridge createCartridge(byte[] romData) {
+        int mapperNumber = ((romData[6] & 0xFF) >>> 4) | (romData[7] & 0b11110000);
+        switch (mapperNumber) {
+            case 0:
+                return new CartridgeMapper00(romData);
+            case 1:
+                return new CartridgeMapper01(romData);
+            default:
+                throw new IllegalArgumentException("Mapper not supported " + mapperNumber);
         }
     }
 
-    byte read(int addr) {
+    abstract int mapAddr(int addr);
+
+    final byte read(int addr) {
         if (addr < 0x6000 || addr > 0xFFFF) {
             throw new IllegalArgumentException("PRG addr out of range: " + Util.getHexString16bit(addr));
         }
         if (addr < 0x8000) {
-            return prgRam[addr - 0x6000];
+            return prgRam[(addr - 0x6000) % prgRamSize];
         } else {
-            return prg[(addr - 0x8000) % prgSize];
+            return prg[mapAddr(addr) % prgSize];
         }
     }
+
+    abstract void writePrgRom(int addr, byte value);
 
     void write(int addr, byte value) {
         if (addr < 0x6000 || addr > 0xFFFF) {
             throw new IllegalArgumentException("PRG addr out of range: " + Util.getHexString16bit(addr));
         }
         if (addr < 0x8000) {
-            prgRam[addr - 0x6000] = value;
+            prgRam[(addr - 0x6000) % prgRamSize] = value;
         } else {
-            throw new IllegalArgumentException("Writing to PRG-ROM not yet supported");
+            writePrgRom(addr, value);
         }
     }
 
-    byte readChr(int addr) {
+    abstract int mapChrAddr(int addr);
+
+    final byte readChr(int addr) {
         if (addr < 0x0000 || addr > 0x1FFF || addr >= chrSize) {
             throw new IllegalArgumentException("CHR addr out of range: " + Util.getHexString16bit(addr)
                 + " (size is " + Util.getHexString16bit(addr) + ")");
         }
 
-        return chr[addr];
+        return chr[mapChrAddr(addr) % chrSize];
     }
 }

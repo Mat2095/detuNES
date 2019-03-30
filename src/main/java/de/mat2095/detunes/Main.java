@@ -39,7 +39,7 @@ class Main {
         Cartridge cartridge;
         try {
             byte[] romContent = Files.readAllBytes(path);
-            cartridge = new Cartridge(romContent);
+            cartridge = Cartridge.createCartridge(romContent);
         } catch (IllegalArgumentException | IOException e) {
             e.printStackTrace();
             return;
@@ -47,9 +47,9 @@ class Main {
 
         System.out.println("  PRG-ROM size: " + cartridge.prgSize
             + "\tCHR-ROM size: " + cartridge.chrSize);
-        System.out.println("  mapper: " + cartridge.mapperNumber
+        System.out.println("  mapper: " + cartridge.getClass().getSimpleName()
             + " \tnametable-mirroring: " + cartridge.nametableMirroring
-            + "\tpersistent memory: " + cartridge.persistentMemory);
+            + "\tpersistent memory: " + cartridge.prgRamPersistent);
     }
 
     private static void debugController() throws XInputNotLoadedException {
