@@ -2,6 +2,26 @@
 
 [![Build Status](https://travis-ci.com/Mat2095/detuNES.svg?token=xy78xvtSts4sqNz8p7Dv&branch=master)](https://travis-ci.com/Mat2095/detuNES)
 
+## Project-Goal
+
+The goal of this project is not to create an emulator for actual use, but rather for me to have fun implementing it and learning something along the way.
+
+Features that WILL be implemented:
+- passing certain test-ROMs
+- running some games and outputting the graphics
+- common mappers: NROM, MMC1, MMC3
+- input from XInput (Xbox 360 controller)
+
+Features that MIGHT be implemented:
+- accurate timing
+- fancy upscaling (xBRZ?)
+- other mappers: UNROM, CNROM, ?
+- keyboard-input
+
+Features that WON'T be implemented:
+- audio output (APU will only be implemented as far as necessary, but no actual output)
+- persistency (neither save-states nor memory-snapshots)
+
 ### Import into IntelliJ IDEA
 
 - Open the Gradle project
