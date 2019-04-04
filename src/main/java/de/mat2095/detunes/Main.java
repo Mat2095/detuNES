@@ -17,11 +17,12 @@ class Main {
         System.out.println("Reading ROM-file: " + romFile);
 
         RunConfiguration runConfig = new RunConfiguration();
-        // assuming 4 cycles per instruction on average, 1ms per 450 instructions should result in about the correct speed
         runConfig.sleepDuration = 1;
-        runConfig.sleepPeriodicity = 450;
+        runConfig.sleepPeriodicity = 10;
+        runConfig.debugPrintGeneralInfo = true;
 
         Emulator emu = new Emulator(romFile.toPath(), runConfig);
+        Gui gui = new Gui(emu);
         emu.power();
         emu.run();
 

@@ -12,8 +12,10 @@ class Emulator {
     private final Apu apu;
     private final Cartridge cartridge;
     private final RunConfiguration runConfig;
+    private RenderingContext renderingContext;
     private long cpuInstrs;
     private boolean stopCheckRunning;
+    private boolean running;
 
     Emulator(Path nesFile, RunConfiguration runConfig) throws IOException {
         byte[] nesBytes = Files.readAllBytes(nesFile);
@@ -24,24 +26,57 @@ class Emulator {
         this.runConfig = runConfig;
     }
 
+    RenderingContext getRenderingContext() {
+        return renderingContext;
+    }
+
+    void setRenderingContext(RenderingContext renderingContext) {
+        this.renderingContext = renderingContext;
+    }
+
+    void resetRenderingContext() {
+        renderingContext = new RenderingContext() {
+            int[] data = new int[240 * 256];
+
+            @Override
+            int[] getBufferData() {
+                return data;
+            }
+
+            @Override
+            void sync() {
+
+            }
+        };
+    }
+
     void power() {
+        if (renderingContext == null) {
+            resetRenderingContext();
+        }
+
         cpu.power(this);
         if (runConfig.startPC != null) {
             cpu.pc = runConfig.startPC;
         }
         cpuInstrs = 0;
 
-        ppu.power();
+        ppu.power(this);
 
         apu.power();
 
         stopCheckRunning = false;
+        running = false;
     }
 
     void run() {
-        while (true) {
+        running = true;
+        while (running) {
             cpu.printDebug(runConfig);
             cpu.exec();
+            ppu.render();
+            ppu.render();
+            ppu.render();
 
             if (runConfig.stopAddr != null) {
                 if (!stopCheckRunning) {
@@ -64,6 +99,10 @@ class Emulator {
                 }
             }
         }
+    }
+
+    void halt() {
+        running = false;
     }
 
     String readText(int addr) {
