@@ -39,8 +39,8 @@ class Emulator {
             int[] data = new int[240 * 256];
 
             @Override
-            int[] getBufferData() {
-                return data;
+            void setBufferData(int addr, int value) {
+                this.data[addr] = value;
             }
 
             @Override
@@ -165,5 +165,12 @@ class Emulator {
         } else {
             cartridge.write(addr, value);
         }
+    }
+
+    byte readChr(int addr) {
+        if (addr < 0x0000 || addr > 0x1FFF) {
+            throw new IllegalArgumentException("CHR addr out of range: " + Util.getHexString16bit(addr));
+        }
+        return cartridge.readChr(addr);
     }
 }

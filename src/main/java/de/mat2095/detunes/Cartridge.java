@@ -81,7 +81,7 @@ abstract class Cartridge {
     final byte readChr(int addr) {
         if (addr < 0x0000 || addr > 0x1FFF || addr >= chrSize) {
             throw new IllegalArgumentException("CHR addr out of range: " + Util.getHexString16bit(addr)
-                + " (size is " + Util.getHexString16bit(addr) + ")");
+                + " (size is " + Util.getHexString16bit(chrSize) + ")");
         }
 
         return chr[mapChrAddr(addr) % chrSize];
