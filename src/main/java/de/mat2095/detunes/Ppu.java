@@ -72,7 +72,7 @@ class Ppu {
         }
 
         if (line < 240 && x < 256) {
-            if (x < 64) {
+            if (line < 128 && x < 64) {
                 int screenAddr = line * 256 + x;
                 byte chrValue = emu.readChr(line * 64 + x);
                 int screenValue = PALETTE[(chrValue & 0xFF) % PALETTE.length];
