@@ -25,7 +25,7 @@ class InstrIntegrationTest {
         emu.power();
         assertTimeoutPreemptively(Duration.ofSeconds(10), emu::run, "Emulator did not stop within given time.");
 
-        byte testStatus = emu.read(runConfig.stopAddr);
+        byte testStatus = emu.readCpu(runConfig.stopAddr);
         String testMessage = emu.readText(0x6004);
         assertEquals(0, testStatus, testMessage);
         assertEquals("All 16 tests passed   ", testMessage, testMessage);
@@ -60,7 +60,7 @@ class InstrIntegrationTest {
         emu.power();
         assertTimeoutPreemptively(Duration.ofSeconds(1), emu::run, "Emulator did not stop within given time.");
 
-        byte testStatus = emu.read(runConfig.stopAddr);
+        byte testStatus = emu.readCpu(runConfig.stopAddr);
         String testMessage = emu.readText(0x6004);
         assertEquals(0, testStatus, testMessage);
         assertEquals(" " + fileName.substring(0, fileName.length() - 4) + "  Passed ", testMessage, testMessage);

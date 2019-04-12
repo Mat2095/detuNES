@@ -50,7 +50,7 @@ class Ppu {
             case 0x0006:
                 throw new IllegalArgumentException("Read from PPU-ADDR not allowed.");
             case 0x0002:
-                registers[0x0002] = (byte) ((registers[0x0002] & 0xFF) & 0x7F);
+                registers[0x0002] = (byte) (registers[0x0002] & 0x7F);
             default:
                 return registers[addr];
         }
@@ -125,13 +125,8 @@ class Ppu {
 
         if (line < 240 && x < 256) {
             int screenAddr = line * 256 + x;
-            if (line < 128 && x < 64) {
-                byte chrValue = emu.readPpu(line * 64 + x);
-                int screenValue = PALETTE[chrValue & 0x3F];
-                emu.getRenderingContext().setBufferData(screenAddr, screenValue);
-            } else {
-                emu.getRenderingContext().setBufferData(screenAddr, PALETTE[emu.readPpu(0x3F00) & 0x3F]);
-            }
+            byte chrValue = emu.readPpu(x < 64 ? line * 64 + x : 0x3F00);
+            emu.getRenderingContext().setBufferData(screenAddr, PALETTE[chrValue & 0x3F]);
         } else if (x == 256) {
             emu.getRenderingContext().sync();
         }
