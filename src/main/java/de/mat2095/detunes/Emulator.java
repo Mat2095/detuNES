@@ -80,11 +80,11 @@ class Emulator {
 
             if (runConfig.stopAddr != null) {
                 if (!stopCheckRunning) {
-                    if (read(runConfig.stopAddr) == runConfig.stopValueUnequal) {
+                    if (readCpu(runConfig.stopAddr) == runConfig.stopValueUnequal) {
                         stopCheckRunning = true;
                     }
                 } else {
-                    if (read(runConfig.stopAddr) != runConfig.stopValueUnequal) {
+                    if (readCpu(runConfig.stopAddr) != runConfig.stopValueUnequal) {
                         return;
                     }
                 }
@@ -108,7 +108,7 @@ class Emulator {
     String readText(int addr) {
         StringBuilder memTextBuilder = new StringBuilder();
         for (; ; addr++) {
-            byte b = read(addr);
+            byte b = readCpu(addr);
             if (b == 0) {
                 break;
             }
@@ -117,15 +117,15 @@ class Emulator {
         return memTextBuilder.toString().replace('\n', ' ');
     }
 
-    byte read(int addr) {
+    byte readCpu(int addr) {
         if (addr < 0x0000 || addr > 0xFFFF) {
-            throw new IllegalArgumentException("addr out of range: " + Util.getHexString16bit(addr));
+            throw new IllegalArgumentException("CPU addr out of range: " + Util.getHexString16bit(addr));
         }
 
         if (addr < 0x2000) {
-            return cpu.read(addr);
+            return cpu.readCpu(addr);
         } else if (addr < 0x4000) {
-            return ppu.read(addr);
+            return ppu.readCpu(addr);
         } else if (addr < 0x4020) {
             if (addr == 0x4014) {
                 throw new IllegalArgumentException("Can't read from OAMDMA: " + Util.getHexString16bit(addr));
@@ -136,22 +136,22 @@ class Emulator {
             } else if (addr >= 0x4018) {
                 throw new IllegalArgumentException("APU/IO test functionality not yet implemented: " + Util.getHexString16bit(addr));
             } else {
-                return apu.read(addr);
+                return apu.readCpu(addr);
             }
         } else {
-            return cartridge.read(addr);
+            return cartridge.readCpu(addr);
         }
     }
 
-    void write(int addr, byte value) {
+    void writeCpu(int addr, byte value) {
         if (addr < 0x0000 || addr > 0xFFFF) {
-            throw new IllegalArgumentException("addr out of range: " + Util.getHexString16bit(addr));
+            throw new IllegalArgumentException("CPU addr out of range: " + Util.getHexString16bit(addr));
         }
 
         if (addr < 0x2000) {
-            cpu.write(addr, value);
+            cpu.writeCpu(addr, value);
         } else if (addr < 0x4000) {
-            ppu.write(addr, value);
+            ppu.writeCpu(addr, value);
         } else if (addr < 0x4020) {
             if (addr == 0x4014) {
                 throw new IllegalArgumentException("OAMDMA (write) not yet implemented: " + Util.getHexString16bit(addr));
@@ -160,17 +160,24 @@ class Emulator {
             } else if (addr >= 0x4018) {
                 throw new IllegalArgumentException("APU/IO test functionality not yet implemented: " + Util.getHexString16bit(addr));
             } else {
-                apu.write(addr, value);
+                apu.writeCpu(addr, value);
             }
         } else {
-            cartridge.write(addr, value);
+            cartridge.writeCpu(addr, value);
         }
     }
 
-    byte readChr(int addr) {
-        if (addr < 0x0000 || addr > 0x1FFF) {
-            throw new IllegalArgumentException("CHR addr out of range: " + Util.getHexString16bit(addr));
+    NametableMirroring getNametableMirroring() {
+        return cartridge.nametableMirroring;
+    }
+
+    byte readPpu(int addr) {
+        if (addr >= 0 && addr < 0x2000) {
+            return cartridge.readPpu(addr);
+        } else if (addr >= 0x2000 && addr < 0x4000) {
+            return ppu.readPpu(addr);
+        } else {
+            throw new IllegalArgumentException("PPU addr out of range: " + Util.getHexString16bit(addr));
         }
-        return cartridge.readChr(addr);
     }
 }

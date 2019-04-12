@@ -50,24 +50,24 @@ abstract class Cartridge {
         }
     }
 
-    abstract int mapAddr(int addr);
+    abstract int mapCpuAddr(int addr);
 
-    final byte read(int addr) {
+    final byte readCpu(int addr) {
         if (addr < 0x6000 || addr > 0xFFFF) {
-            throw new IllegalArgumentException("PRG addr out of range: " + Util.getHexString16bit(addr));
+            throw new IllegalArgumentException("CPU addr out of range at cartridge: " + Util.getHexString16bit(addr));
         }
         if (addr < 0x8000) {
             return prgRam[(addr - 0x6000) % prgRamSize];
         } else {
-            return prg[mapAddr(addr) % prgSize];
+            return prg[mapCpuAddr(addr) % prgSize];
         }
     }
 
     abstract void writePrgRom(int addr, byte value);
 
-    void write(int addr, byte value) {
+    void writeCpu(int addr, byte value) {
         if (addr < 0x6000 || addr > 0xFFFF) {
-            throw new IllegalArgumentException("PRG addr out of range: " + Util.getHexString16bit(addr));
+            throw new IllegalArgumentException("CPU addr out of range at cartridge: " + Util.getHexString16bit(addr));
         }
         if (addr < 0x8000) {
             prgRam[(addr - 0x6000) % prgRamSize] = value;
@@ -76,14 +76,14 @@ abstract class Cartridge {
         }
     }
 
-    abstract int mapChrAddr(int addr);
+    abstract int mapPpuAddr(int addr);
 
-    final byte readChr(int addr) {
+    final byte readPpu(int addr) {
         if (addr < 0x0000 || addr > 0x1FFF || addr >= chrSize) {
-            throw new IllegalArgumentException("CHR addr out of range: " + Util.getHexString16bit(addr)
+            throw new IllegalArgumentException("PPU addr out of range at cartridge: " + Util.getHexString16bit(addr)
                 + " (size is " + Util.getHexString16bit(chrSize) + ")");
         }
 
-        return chr[mapChrAddr(addr) % chrSize];
+        return chr[mapPpuAddr(addr) % chrSize];
     }
 }

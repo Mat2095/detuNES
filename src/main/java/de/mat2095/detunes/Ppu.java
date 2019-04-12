@@ -14,11 +14,17 @@ class Ppu {
     };
 
     private final byte[] registers;
+    private final byte[][] nametables;
+    private final byte[] palette;
+    private final byte[] oam;
     private int line, x;
     private Emulator emu;
 
     Ppu() {
         this.registers = new byte[8];
+        this.nametables = new byte[2][0x0400];
+        this.palette = new byte[0x20];
+        this.oam = new byte[0x0100];
     }
 
     void power(Emulator emu) {
@@ -27,9 +33,9 @@ class Ppu {
         line = x = 0; // TODO: verify
     }
 
-    byte read(int addr) {
+    byte readCpu(int addr) {
         if (addr < 0x2000 || addr > 0x3FFF) {
-            throw new IllegalArgumentException("PPU addr out of range: " + Util.getHexString16bit(addr));
+            throw new IllegalArgumentException("CPU addr out of range at PPU: " + Util.getHexString16bit(addr));
         }
         addr %= 0x0008;
         switch (addr) {
@@ -50,9 +56,9 @@ class Ppu {
         }
     }
 
-    void write(int addr, byte value) {
+    void writeCpu(int addr, byte value) {
         if (addr < 0x2000 || addr > 0x3FFF) {
-            throw new IllegalArgumentException("PPU addr out of range: " + Util.getHexString16bit(addr));
+            throw new IllegalArgumentException("CPU addr out of range at PPU: " + Util.getHexString16bit(addr));
         }
         addr %= 0x0008;
         switch (addr) {
@@ -60,6 +66,26 @@ class Ppu {
                 throw new IllegalArgumentException("Write to PPU-STATUS not allowed.");
             default:
                 registers[addr] = value;
+        }
+    }
+
+    byte readPpu(int addr) {
+        if (addr >= 0x2000 && addr < 0x3F00) {
+            int quadrant = (addr / 0x0400) % 4;
+            addr %= 0x0400;
+            switch (emu.getNametableMirroring()) {
+                case HORIZONTAL:
+                    return nametables[quadrant / 2][addr];
+                case VERTICAL:
+                    return nametables[quadrant % 2][addr];
+                default:
+                    throw new IllegalStateException("Invalid Nametable-Mirroring");
+            }
+        } else if (addr >= 0x3F00 && addr < 0x4000) {
+            addr %= 0x20;
+            return palette[addr];
+        } else {
+            throw new IllegalArgumentException("PPU addr out of range at PPU: " + Util.getHexString16bit(addr));
         }
     }
 
@@ -72,11 +98,13 @@ class Ppu {
         }
 
         if (line < 240 && x < 256) {
+            int screenAddr = line * 256 + x;
             if (line < 128 && x < 64) {
-                int screenAddr = line * 256 + x;
-                byte chrValue = emu.readChr(line * 64 + x);
-                int screenValue = PALETTE[(chrValue & 0xFF) % PALETTE.length];
+                byte chrValue = emu.readPpu(line * 64 + x);
+                int screenValue = PALETTE[chrValue & 0x3F];
                 emu.getRenderingContext().setBufferData(screenAddr, screenValue);
+            } else {
+                emu.getRenderingContext().setBufferData(screenAddr, PALETTE[emu.readPpu(0x3F00) & 0x3F]);
             }
         } else if (x == 256) {
             emu.getRenderingContext().sync();

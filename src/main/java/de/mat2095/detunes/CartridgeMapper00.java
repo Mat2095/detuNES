@@ -17,7 +17,7 @@ class CartridgeMapper00 extends Cartridge {
     }
 
     @Override
-    int mapAddr(int addr) {
+    int mapCpuAddr(int addr) {
         return addr - 0x8000;
     }
 
@@ -27,7 +27,7 @@ class CartridgeMapper00 extends Cartridge {
     }
 
     @Override
-    int mapChrAddr(int addr) {
+    int mapPpuAddr(int addr) {
         return addr;
     }
 }

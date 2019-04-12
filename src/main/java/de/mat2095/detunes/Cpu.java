@@ -181,17 +181,17 @@ class Cpu {
         pc = readDouble(0xFFFC);
     }
 
-    byte read(int addr) {
+    byte readCpu(int addr) {
         if (addr < 0 || addr > 0x1FFF) {
-            throw new IllegalArgumentException("CPU addr out of range: " + Util.getHexString16bit(addr));
+            throw new IllegalArgumentException("CPU addr out of range at CPU: " + Util.getHexString16bit(addr));
         }
 
         return ram[addr % 0x0800];
     }
 
-    void write(int addr, byte value) {
+    void writeCpu(int addr, byte value) {
         if (addr < 0 || addr > 0x1FFF) {
-            throw new IllegalArgumentException("CPU addr out of range: " + Util.getHexString16bit(addr));
+            throw new IllegalArgumentException("CPU addr out of range at CPU: " + Util.getHexString16bit(addr));
         }
 
         ram[addr % 0x0800] = value;
@@ -225,17 +225,17 @@ class Cpu {
     }
 
     private void pushStack(byte b) {
-        emu.write(0x100 | (regSP & 0xFF), b);
+        emu.writeCpu(0x100 | (regSP & 0xFF), b);
         regSP--;
     }
 
     private byte popStack() {
         regSP++;
-        return emu.read(0x100 | (regSP & 0xFF));
+        return emu.readCpu(0x100 | (regSP & 0xFF));
     }
 
     private int readDouble(int addr) {
-        return (emu.read(addr) & 0xFF) | ((emu.read(addr + 1) & 0xFF) << 8);
+        return (emu.readCpu(addr) & 0xFF) | ((emu.readCpu(addr + 1) & 0xFF) << 8);
     }
 
     // <address-readers>
@@ -245,7 +245,7 @@ class Cpu {
     }
 
     private int readZpAddr() {
-        return emu.read(readImmAddr()) & 0xFF;
+        return emu.readCpu(readImmAddr()) & 0xFF;
     }
 
     private int readZpxAddr() {
@@ -273,13 +273,13 @@ class Cpu {
     private int readIzxAddr() {
         int ai1 = (readZpAddr() + regX) & 0xFF;
         int ai2 = (ai1 + 1) & 0xFF;
-        return (emu.read(ai1) & 0xFF) | ((emu.read(ai2) & 0xFF) << 8);
+        return (emu.readCpu(ai1) & 0xFF) | ((emu.readCpu(ai2) & 0xFF) << 8);
     }
 
     private int readIzyAddr() {
         int ai1 = readZpAddr();
         int ai2 = (ai1 + 1) & 0xFF;
-        return (((emu.read(ai1) & 0xFF) | ((emu.read(ai2) & 0xFF) << 8)) + (regY & 0xFF)) & 0xFFFF;
+        return (((emu.readCpu(ai1) & 0xFF) | ((emu.readCpu(ai2) & 0xFF) << 8)) + (regY & 0xFF)) & 0xFFFF;
     }
 
     // </address-readers>
@@ -287,83 +287,83 @@ class Cpu {
     // <operations>
 
     private void execAnd(int addr) {
-        regAcc &= emu.read(addr);
+        regAcc &= emu.readCpu(addr);
         updateNZ(regAcc);
     }
 
     private void execOra(int addr) {
-        regAcc |= emu.read(addr);
+        regAcc |= emu.readCpu(addr);
         updateNZ(regAcc);
     }
 
     private void execEor(int addr) {
-        regAcc ^= emu.read(addr);
+        regAcc ^= emu.readCpu(addr);
         updateNZ(regAcc);
     }
 
     private void execAsl(int addr) {
-        byte p = emu.read(addr);
+        byte p = emu.readCpu(addr);
         flagC = (p & 0x80) == 0x80;
         p = (byte) ((p & 0xFF) << 1);
-        emu.write(addr, p);
+        emu.writeCpu(addr, p);
         updateNZ(p);
     }
 
     private void execLsr(int addr) {
-        byte p = emu.read(addr);
+        byte p = emu.readCpu(addr);
         flagC = (p & 0x01) == 0x01;
         p = (byte) ((p & 0xFF) >>> 1);
-        emu.write(addr, p);
+        emu.writeCpu(addr, p);
         updateNZ(p);
     }
 
     private void execRol(int addr) {
-        byte p = emu.read(addr);
+        byte p = emu.readCpu(addr);
         byte newP = (byte) ((flagC ? 0x01 : 0x00) | ((p & 0xFF) << 1));
         flagC = (p & 0x80) == 0x80;
-        emu.write(addr, newP);
+        emu.writeCpu(addr, newP);
         updateNZ(newP);
     }
 
     private void execRor(int addr) {
-        byte p = emu.read(addr);
+        byte p = emu.readCpu(addr);
         byte newP = (byte) ((flagC ? 0x80 : 0x00) | ((p & 0xFF) >>> 1));
         flagC = (p & 0x01) == 0x01;
-        emu.write(addr, newP);
+        emu.writeCpu(addr, newP);
         updateNZ(newP);
     }
 
     private void execBit(int addr) {
-        byte p = emu.read(addr);
+        byte p = emu.readCpu(addr);
         flagZ = (regAcc & p) == 0;
         flagN = (p & 0x80) != 0;
         flagV = (p & 0x40) != 0;
     }
 
     private void execCmp(byte val, int addr) {
-        byte m = emu.read(addr);
+        byte m = emu.readCpu(addr);
         updateNZ((byte) (val - m));
         flagC = (val & 0xFF) >= (m & 0xFF);
     }
 
     private void execBr(boolean cond) {
-        byte offset = emu.read(readImmAddr());
+        byte offset = emu.readCpu(readImmAddr());
         if (cond) {
             pc += offset;
         }
     }
 
     private void execInc(int addr) {
-        byte p = emu.read(addr);
+        byte p = emu.readCpu(addr);
         p++;
-        emu.write(addr, p);
+        emu.writeCpu(addr, p);
         updateNZ(p);
     }
 
     private void execDec(int addr) {
-        byte p = emu.read(addr);
+        byte p = emu.readCpu(addr);
         p--;
-        emu.write(addr, p);
+        emu.writeCpu(addr, p);
         updateNZ(p);
     }
 
@@ -376,11 +376,11 @@ class Cpu {
     }
 
     private void execAdc(int addr) {
-        addToAcc(emu.read(addr));
+        addToAcc(emu.readCpu(addr));
     }
 
     private void execSbc(int addr) {
-        addToAcc((byte) (emu.read(addr) ^ 0xFF));
+        addToAcc((byte) (emu.readCpu(addr) ^ 0xFF));
     }
 
     // </operations>
@@ -392,11 +392,11 @@ class Cpu {
             if (runConfig.debugPrintMem != null) {
                 outputLine.append("\u00a0 ");
                 for (int memAddr : runConfig.debugPrintMem) {
-                    outputLine.append(" ").append(Util.getHexString(emu.read(memAddr)));
+                    outputLine.append(" ").append(Util.getHexString(emu.readCpu(memAddr)));
                 }
             }
             if (runConfig.debugPrintGeneralInfo) {
-                byte op = emu.read(pc);
+                byte op = emu.readCpu(pc);
                 outputLine
                     .append("\u00a0  SP: ").append(Util.getHexString(regSP))
                     .append("\u00a0 X: ").append(Util.getHexString(regX))
@@ -429,7 +429,7 @@ class Cpu {
             throw new IllegalStateException("pc is in illegal state: 0x" + Util.getHexString16bit(pc));
         }
 
-        byte op = emu.read(pc++);
+        byte op = emu.readCpu(pc++);
 
         switch (op) {
             case 0x00: { // INT<BRK>
@@ -703,7 +703,7 @@ class Cpu {
             case 0x6C: { // JMP_IND
                 int ai1 = readDouble(pc);
                 int ai2 = (ai1 & 0xFF00) | ((ai1 + 1) & 0xFF);
-                pc = (emu.read(ai1) & 0xFF) | ((emu.read(ai2) & 0xFF) << 8);
+                pc = (emu.readCpu(ai1) & 0xFF) | ((emu.readCpu(ai2) & 0xFF) << 8);
                 break;
             }
             case 0x6D: { // ADC<abs>
@@ -747,19 +747,19 @@ class Cpu {
                 break;
             }
             case (byte) 0x81: { // st<A,izx>
-                emu.write(readIzxAddr(), regAcc);
+                emu.writeCpu(readIzxAddr(), regAcc);
                 break;
             }
             case (byte) 0x84: { // st<Y,zp>
-                emu.write(readZpAddr(), regY);
+                emu.writeCpu(readZpAddr(), regY);
                 break;
             }
             case (byte) 0x85: { // st<A,zp>
-                emu.write(readZpAddr(), regAcc);
+                emu.writeCpu(readZpAddr(), regAcc);
                 break;
             }
             case (byte) 0x86: { // st<X,zp>
-                emu.write(readZpAddr(), regX);
+                emu.writeCpu(readZpAddr(), regX);
                 break;
             }
             case (byte) 0x88: { // dec<Y>
@@ -773,15 +773,15 @@ class Cpu {
                 break;
             }
             case (byte) 0x8C: { // st<Y,abs>
-                emu.write(readAbsAddr(), regY);
+                emu.writeCpu(readAbsAddr(), regY);
                 break;
             }
             case (byte) 0x8D: { // st<A,abs>
-                emu.write(readAbsAddr(), regAcc);
+                emu.writeCpu(readAbsAddr(), regAcc);
                 break;
             }
             case (byte) 0x8E: { // st<X,abs>
-                emu.write(readAbsAddr(), regX);
+                emu.writeCpu(readAbsAddr(), regX);
                 break;
             }
             case (byte) 0x90: { // br<C,0>
@@ -789,19 +789,19 @@ class Cpu {
                 break;
             }
             case (byte) 0x91: { // st<A,izy>
-                emu.write(readIzyAddr(), regAcc);
+                emu.writeCpu(readIzyAddr(), regAcc);
                 break;
             }
             case (byte) 0x94: { // st<Y,zpx>
-                emu.write(readZpxAddr(), regY);
+                emu.writeCpu(readZpxAddr(), regY);
                 break;
             }
             case (byte) 0x95: { // st<A,zpx>
-                emu.write(readZpxAddr(), regAcc);
+                emu.writeCpu(readZpxAddr(), regAcc);
                 break;
             }
             case (byte) 0x96: { // st<X,zpy>
-                emu.write(readZpyAddr(), regX);
+                emu.writeCpu(readZpyAddr(), regX);
                 break;
             }
             case (byte) 0x98: { // tr<Y,A>
@@ -810,7 +810,7 @@ class Cpu {
                 break;
             }
             case (byte) 0x99: { // st<A,aby>
-                emu.write(readAbyAddr(), regAcc);
+                emu.writeCpu(readAbyAddr(), regAcc);
                 break;
             }
             case (byte) 0x9A: { // tr<X,S>
@@ -818,36 +818,36 @@ class Cpu {
                 break;
             }
             case (byte) 0x9D: { // st<A,abx>
-                emu.write(readAbxAddr(), regAcc);
+                emu.writeCpu(readAbxAddr(), regAcc);
                 break;
             }
             case (byte) 0xA0: { // ld<Y,imm>
-                regY = emu.read(readImmAddr());
+                regY = emu.readCpu(readImmAddr());
                 updateNZ(regY);
                 break;
             }
             case (byte) 0xA1: { // ld<A,izx>
-                regAcc = emu.read(readIzxAddr());
+                regAcc = emu.readCpu(readIzxAddr());
                 updateNZ(regAcc);
                 break;
             }
             case (byte) 0xA2: { // ld<X,imm>
-                regX = emu.read(readImmAddr());
+                regX = emu.readCpu(readImmAddr());
                 updateNZ(regX);
                 break;
             }
             case (byte) 0xA4: { // ld<Y,zp>
-                regY = emu.read(readZpAddr());
+                regY = emu.readCpu(readZpAddr());
                 updateNZ(regY);
                 break;
             }
             case (byte) 0xA5: { // ld<A,zp>
-                regAcc = emu.read(readZpAddr());
+                regAcc = emu.readCpu(readZpAddr());
                 updateNZ(regAcc);
                 break;
             }
             case (byte) 0xA6: { // ld<X,zp>
-                regX = emu.read(readZpAddr());
+                regX = emu.readCpu(readZpAddr());
                 updateNZ(regX);
                 break;
             }
@@ -857,7 +857,7 @@ class Cpu {
                 break;
             }
             case (byte) 0xA9: { // ld<A,imm>
-                regAcc = emu.read(readImmAddr());
+                regAcc = emu.readCpu(readImmAddr());
                 updateNZ(regAcc);
                 break;
             }
@@ -867,17 +867,17 @@ class Cpu {
                 break;
             }
             case (byte) 0xAC: { // ld<Y,abs>
-                regY = emu.read(readAbsAddr());
+                regY = emu.readCpu(readAbsAddr());
                 updateNZ(regY);
                 break;
             }
             case (byte) 0xAD: { // ld<A,abs>
-                regAcc = emu.read(readAbsAddr());
+                regAcc = emu.readCpu(readAbsAddr());
                 updateNZ(regAcc);
                 break;
             }
             case (byte) 0xAE: { // ld<X,abs>
-                regX = emu.read(readAbsAddr());
+                regX = emu.readCpu(readAbsAddr());
                 updateNZ(regX);
                 break;
             }
@@ -886,22 +886,22 @@ class Cpu {
                 break;
             }
             case (byte) 0xB1: { // ld<A,izy>
-                regAcc = emu.read(readIzyAddr());
+                regAcc = emu.readCpu(readIzyAddr());
                 updateNZ(regAcc);
                 break;
             }
             case (byte) 0xB4: { // ld<Y,zpx>
-                regY = emu.read(readZpxAddr());
+                regY = emu.readCpu(readZpxAddr());
                 updateNZ(regY);
                 break;
             }
             case (byte) 0xB5: { // ld<A,zpx>
-                regAcc = emu.read(readZpxAddr());
+                regAcc = emu.readCpu(readZpxAddr());
                 updateNZ(regAcc);
                 break;
             }
             case (byte) 0xB6: { // ld<X,zpy>
-                regX = emu.read(readZpyAddr());
+                regX = emu.readCpu(readZpyAddr());
                 updateNZ(regX);
                 break;
             }
@@ -910,7 +910,7 @@ class Cpu {
                 break;
             }
             case (byte) 0xB9: { // ld<A,aby>
-                regAcc = emu.read(readAbyAddr());
+                regAcc = emu.readCpu(readAbyAddr());
                 updateNZ(regAcc);
                 break;
             }
@@ -920,17 +920,17 @@ class Cpu {
                 break;
             }
             case (byte) 0xBC: { // ld<Y,abx>
-                regY = emu.read(readAbxAddr());
+                regY = emu.readCpu(readAbxAddr());
                 updateNZ(regY);
                 break;
             }
             case (byte) 0xBD: { // ld<A,abx>
-                regAcc = emu.read(readAbxAddr());
+                regAcc = emu.readCpu(readAbxAddr());
                 updateNZ(regAcc);
                 break;
             }
             case (byte) 0xBE: { // ld<X,aby>
-                regX = emu.read(readAbyAddr());
+                regX = emu.readCpu(readAbyAddr());
                 updateNZ(regX);
                 break;
             }

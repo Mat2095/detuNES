@@ -83,7 +83,7 @@ class CartridgeMapper01 extends Cartridge {
 
 
     @Override
-    int mapAddr(int addr) {
+    int mapCpuAddr(int addr) {
         return prgMap[(addr - 0x8000) / 0x4000] + ((addr - 0x8000) % 0x4000);
     }
 
@@ -110,7 +110,7 @@ class CartridgeMapper01 extends Cartridge {
     }
 
     @Override
-    int mapChrAddr(int addr) {
+    int mapPpuAddr(int addr) {
         return chrMap[addr / 0x1000] + (addr % 0x1000);
     }
 }
