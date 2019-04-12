@@ -83,7 +83,33 @@ class Ppu {
             }
         } else if (addr >= 0x3F00 && addr < 0x4000) {
             addr %= 0x20;
+            if ((addr & 0x13) == 0x10) {
+                addr &= 0x0F;
+            }
             return palette[addr];
+        } else {
+            throw new IllegalArgumentException("PPU addr out of range at PPU: " + Util.getHexString16bit(addr));
+        }
+    }
+
+    void writePpu(int addr, byte value) {
+        if (addr >= 0x2000 && addr < 0x3F00) {
+            int quadrant = (addr / 0x0400) % 4;
+            addr %= 0x0400;
+            switch (emu.getNametableMirroring()) {
+                case HORIZONTAL:
+                    nametables[quadrant / 2][addr] = value;
+                case VERTICAL:
+                    nametables[quadrant % 2][addr] = value;
+                default:
+                    throw new IllegalStateException("Invalid Nametable-Mirroring");
+            }
+        } else if (addr >= 0x3F00 && addr < 0x4000) {
+            addr %= 0x20;
+            if ((addr & 0x13) == 0x10) {
+                addr &= 0x0F;
+            }
+            palette[addr] = value;
         } else {
             throw new IllegalArgumentException("PPU addr out of range at PPU: " + Util.getHexString16bit(addr));
         }

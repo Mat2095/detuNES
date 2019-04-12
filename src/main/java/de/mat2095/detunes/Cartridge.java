@@ -86,4 +86,15 @@ abstract class Cartridge {
 
         return chr[mapPpuAddr(addr) % chrSize];
     }
+
+    final void writePpu(int addr, byte value) {
+        if (addr < 0x0000 || addr > 0x1FFF || addr >= chrSize) {
+            throw new IllegalArgumentException("PPU addr out of range at cartridge: " + Util.getHexString16bit(addr)
+                + " (size is " + Util.getHexString16bit(chrSize) + ")");
+        }
+
+        if (chrRam) {
+            chr[mapPpuAddr(addr) % chrSize] = value;
+        }
+    }
 }

@@ -180,4 +180,14 @@ class Emulator {
             throw new IllegalArgumentException("PPU addr out of range: " + Util.getHexString16bit(addr));
         }
     }
+
+    void writePpu(int addr, byte value) {
+        if (addr >= 0 && addr < 0x2000) {
+            cartridge.writePpu(addr, value);
+        } else if (addr >= 0x2000 && addr < 0x4000) {
+            ppu.writePpu(addr, value);
+        } else {
+            throw new IllegalArgumentException("PPU addr out of range: " + Util.getHexString16bit(addr));
+        }
+    }
 }
