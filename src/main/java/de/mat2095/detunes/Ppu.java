@@ -13,7 +13,24 @@ class Ppu {
         0xF8D878, 0xD8F878, 0xB8F8B8, 0xB8F8D8, 0x00FCFC, 0xF8D8F8, 0x000000, 0x000000
     };
 
-    private final byte[] registers;
+    // registers
+
+    private boolean regCtrlV, regCtrlP, regCtrlH; // v-blank, master-slave, sprite-height
+    private boolean regCtrlB, regCtrlS, regCtrlI; // bg-pattern-table, sprite-pattern-table, vram-inc
+    private int regCtrlN; // base-nametable-address
+
+    private boolean regMaskB, regMaskG, regMaskR; // emphasize: blue, green, red
+    private boolean regMaskSp, regMaskBg; // show: sprites, background
+    private boolean regMaskSpL, regMaskBgL; // show in left 8px: sprites, background
+    private boolean regMaskGr; // grayscale
+
+    private boolean regStatusV, regStatusS, regStatusO; // v-blank started, sprite 0 hit, sprite overflow
+
+    private byte regOamAddr;
+    private byte regPpuScroll, regPpuAddr;
+
+    private byte lastValueWritten;
+
     private final byte[][] nametables;
     private final byte[] palette;
     private final byte[] oam;
@@ -21,7 +38,6 @@ class Ppu {
     private Emulator emu;
 
     Ppu() {
-        this.registers = new byte[8];
         this.nametables = new byte[2][0x0400];
         this.palette = new byte[0x20];
         this.oam = new byte[0x0100];
@@ -29,8 +45,74 @@ class Ppu {
 
     void power(Emulator emu) {
         this.emu = emu;
-        registers[2] = (byte) 0b10100000;
+        setRegStatus((byte) 0b10100000);
         line = x = 0; // TODO: verify
+    }
+
+    byte getRegCtrl() {
+        byte regCtrl = 0;
+
+        regCtrl |= regCtrlN & 0b00000011;
+        regCtrl |= regCtrlI ? 0b00000100 : 0;
+        regCtrl |= regCtrlS ? 0b00001000 : 0;
+        regCtrl |= regCtrlB ? 0b00010000 : 0;
+        regCtrl |= regCtrlH ? 0b00100000 : 0;
+        regCtrl |= regCtrlP ? 0b01000000 : 0;
+        regCtrl |= regCtrlV ? 0b10000000 : 0;
+
+        return regCtrl;
+    }
+
+    private void setRegCtrl(byte regCtrl) {
+        regCtrlN = regCtrl & 0b00000011;
+        regCtrlI = (regCtrl & 0b00000100) != 0;
+        regCtrlS = (regCtrl & 0b00001000) != 0;
+        regCtrlB = (regCtrl & 0b00010000) != 0;
+        regCtrlH = (regCtrl & 0b00100000) != 0;
+        regCtrlP = (regCtrl & 0b01000000) != 0;
+        regCtrlV = (regCtrl & 0b10000000) != 0;
+    }
+
+    byte getRegMask() {
+        byte regMask = 0;
+
+        regMask |= regMaskGr ? 0b00000001 : 0;
+        regMask |= regMaskBgL ? 0b00000010 : 0;
+        regMask |= regMaskSpL ? 0b00000100 : 0;
+        regMask |= regMaskBg ? 0b00001000 : 0;
+        regMask |= regMaskSp ? 0b00010000 : 0;
+        regMask |= regMaskR ? 0b00100000 : 0;
+        regMask |= regMaskG ? 0b01000000 : 0;
+        regMask |= regMaskB ? 0b10000000 : 0;
+
+        return regMask;
+    }
+
+    private void setRegMask(byte regMask) {
+        regMaskGr = (regMask & 0b00000001) != 0;
+        regMaskBgL = (regMask & 0b00000010) != 0;
+        regMaskSpL = (regMask & 0b00000100) != 0;
+        regMaskBg = (regMask & 0b00001000) != 0;
+        regMaskSp = (regMask & 0b00010000) != 0;
+        regMaskR = (regMask & 0b00100000) != 0;
+        regMaskG = (regMask & 0b01000000) != 0;
+        regMaskB = (regMask & 0b10000000) != 0;
+    }
+
+    byte getRegStatus() {
+        byte regStatus = 0;
+
+        regStatus |= regStatusO ? 0b00100000 : 0;
+        regStatus |= regStatusS ? 0b01000000 : 0;
+        regStatus |= regStatusV ? 0b10000000 : 0;
+
+        return regStatus;
+    }
+
+    void setRegStatus(byte regStatus) {
+        regStatusO = (regStatus & 0b00100000) != 0;
+        regStatusS = (regStatus & 0b01000000) != 0;
+        regStatusV = (regStatus & 0b10000000) != 0;
     }
 
     byte readCpu(int addr) {
@@ -43,16 +125,23 @@ class Ppu {
                 throw new IllegalArgumentException("Read from PPU-CTRL not allowed.");
             case 0x0001:
                 throw new IllegalArgumentException("Read from PPU-MASK not allowed.");
+            case 0x0002:
+                byte result = (byte) (getRegStatus() | (lastValueWritten & 0b00011111));
+                regStatusV = false;
+                return result;
             case 0x0003:
                 throw new IllegalArgumentException("Read from OAM-ADDR not allowed.");
+            case 0x0004:
+                return oam[regOamAddr & 0xFF];
             case 0x0005:
                 throw new IllegalArgumentException("Read from PPU-SCROLL not allowed.");
             case 0x0006:
                 throw new IllegalArgumentException("Read from PPU-ADDR not allowed.");
-            case 0x0002:
-                registers[0x0002] = (byte) (registers[0x0002] & 0x7F);
+            case 0x0007:
+                // TODO: implement actual reading
+                return emu.readPpu(regPpuAddr & 0xFF);
             default:
-                return registers[addr];
+                throw new Error("(addr % 8) has invalid value");
         }
     }
 
@@ -62,11 +151,39 @@ class Ppu {
         }
         addr %= 0x0008;
         switch (addr) {
+            case 0x0000:
+                setRegCtrl(value);
+                break;
+            case 0x0001:
+                setRegMask(value);
+                break;
             case 0x0002:
                 throw new IllegalArgumentException("Write to PPU-STATUS not allowed.");
+            case 0x0003:
+                regOamAddr = value;
+                break;
+            case 0x0004:
+                oam[regOamAddr & 0xFF] = value;
+                regOamAddr++;
+                break;
+            case 0x0005:
+                // TODO: actually implement
+                regPpuScroll = value;
+                break;
+            case 0x0006:
+                // TODO: actually implement
+                regPpuAddr = value;
+                break;
+            case 0x0007:
+                // TODO: actually implement
+                emu.writePpu(regPpuAddr & 0xFF, value);
+                regPpuAddr += regCtrlI ? 32 : 1;
+                break;
             default:
-                registers[addr] = value;
+                throw new Error("(addr % 8) has invalid value");
         }
+
+        lastValueWritten = value;
     }
 
     byte readPpu(int addr) {
@@ -79,7 +196,7 @@ class Ppu {
                 case VERTICAL:
                     return nametables[quadrant % 2][addr];
                 default:
-                    throw new IllegalStateException("Invalid Nametable-Mirroring");
+                    throw new Error("Invalid Nametable-Mirroring");
             }
         } else if (addr >= 0x3F00 && addr < 0x4000) {
             addr %= 0x20;
@@ -102,7 +219,7 @@ class Ppu {
                 case VERTICAL:
                     nametables[quadrant % 2][addr] = value;
                 default:
-                    throw new IllegalStateException("Invalid Nametable-Mirroring");
+                    throw new Error("Invalid Nametable-Mirroring");
             }
         } else if (addr >= 0x3F00 && addr < 0x4000) {
             addr %= 0x20;
@@ -117,10 +234,12 @@ class Ppu {
 
     void render() {
         if (line == 241 && x == 1) {
-            registers[0x0002] = (byte) ((registers[0x0002] & 0xFF) | 0b10000000);
+            regStatusV = true;
         }
         if (line == 261 && x == 1) {
-            registers[0x0002] = (byte) ((registers[0x0002] & 0xFF) & 0b00011111);
+            regStatusV = false;
+            regStatusS = false;
+            regStatusO = false;
         }
 
         if (line < 240 && x < 256) {
