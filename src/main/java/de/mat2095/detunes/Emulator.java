@@ -105,6 +105,10 @@ class Emulator {
         running = false;
     }
 
+    public RunConfiguration getRunConfig() {
+        return runConfig;
+    }
+
     String readText(int addr) {
         StringBuilder memTextBuilder = new StringBuilder();
         for (; ; addr++) {

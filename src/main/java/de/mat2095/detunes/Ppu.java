@@ -120,6 +120,9 @@ class Ppu {
             throw new IllegalArgumentException("CPU addr out of range at PPU: " + Util.getHexString16bit(addr));
         }
         addr %= 0x0008;
+        if (emu.getRunConfig().debugPpuPrintAccesses) {
+            System.out.println("PPU rd: " + Util.getHexString16bit(addr));
+        }
         switch (addr) {
             case 0x0000:
                 throw new IllegalArgumentException("Read from PPU-CTRL not allowed.");
@@ -150,6 +153,10 @@ class Ppu {
             throw new IllegalArgumentException("CPU addr out of range at PPU: " + Util.getHexString16bit(addr));
         }
         addr %= 0x0008;
+        if (emu.getRunConfig().debugPpuPrintAccesses) {
+            System.out.println("PPU wr: " + Util.getHexString16bit(addr) + " "
+                + (addr <= 2 ? Util.getBinString(value) : Util.getHexString(value)));
+        }
         switch (addr) {
             case 0x0000:
                 setRegCtrl(value);
@@ -216,8 +223,10 @@ class Ppu {
             switch (emu.getNametableMirroring()) {
                 case HORIZONTAL:
                     nametables[quadrant / 2][addr] = value;
+                    break;
                 case VERTICAL:
                     nametables[quadrant % 2][addr] = value;
+                    break;
                 default:
                     throw new Error("Invalid Nametable-Mirroring");
             }

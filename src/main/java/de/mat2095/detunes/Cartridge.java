@@ -95,6 +95,8 @@ abstract class Cartridge {
 
         if (chrRam) {
             chr[mapPpuAddr(addr) % chrSize] = value;
+        } else {
+            throw new IllegalStateException("Writing to PPU-ROM not allowed.");
         }
     }
 }

@@ -386,16 +386,16 @@ class Cpu {
     // </operations>
 
     void printDebug(RunConfiguration runConfig) {
-        boolean printGeneralInfoLine = runConfig.debugPrintGeneralInfo || runConfig.debugPrintMem != null;
+        boolean printGeneralInfoLine = runConfig.debugCpuPrintGeneralInfo || runConfig.debugCpuPrintMem != null;
         if (printGeneralInfoLine) {
             StringBuilder outputLine = new StringBuilder("exec");
-            if (runConfig.debugPrintMem != null) {
+            if (runConfig.debugCpuPrintMem != null) {
                 outputLine.append("\u00a0 ");
-                for (int memAddr : runConfig.debugPrintMem) {
+                for (int memAddr : runConfig.debugCpuPrintMem) {
                     outputLine.append(" ").append(Util.getHexString(emu.readCpu(memAddr)));
                 }
             }
-            if (runConfig.debugPrintGeneralInfo) {
+            if (runConfig.debugCpuPrintGeneralInfo) {
                 byte op = emu.readCpu(pc);
                 outputLine
                     .append("\u00a0  SP: ").append(Util.getHexString(regSP))
@@ -410,8 +410,8 @@ class Cpu {
             System.out.println(outputLine);
         }
 
-        if (runConfig.debugPrintMemText != null) {
-            String memText = emu.readText(runConfig.debugPrintMemText);
+        if (runConfig.debugCpuPrintMemText != null) {
+            String memText = emu.readText(runConfig.debugCpuPrintMemText);
             if (printGeneralInfoLine) {
                 System.out.println("       " + memText);
             } else {

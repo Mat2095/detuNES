@@ -8,9 +8,11 @@ public class RunConfiguration {
 
     Integer startPC;
 
-    boolean debugPrintGeneralInfo;
-    int[] debugPrintMem;
-    Integer debugPrintMemText;
+    boolean debugCpuPrintGeneralInfo;
+    int[] debugCpuPrintMem;
+    Integer debugCpuPrintMemText;
+
+    boolean debugPpuPrintAccesses;
 
     Integer stopAddr;
     byte stopValueUnequal;
@@ -21,9 +23,11 @@ public class RunConfiguration {
 
         this.startPC = null;
 
-        this.debugPrintGeneralInfo = false;
-        this.debugPrintMem = null;
-        this.debugPrintMemText = null;
+        this.debugCpuPrintGeneralInfo = false;
+        this.debugCpuPrintMem = null;
+        this.debugCpuPrintMemText = null;
+
+        this.debugPpuPrintAccesses = false;
 
         this.stopAddr = null;
     }

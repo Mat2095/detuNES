@@ -18,8 +18,8 @@ class Main {
 
         RunConfiguration runConfig = new RunConfiguration();
         runConfig.sleepDuration = 1;
-        runConfig.sleepPeriodicity = 10;
-        runConfig.debugPrintGeneralInfo = true;
+        runConfig.sleepPeriodicity = 200;
+        runConfig.debugPpuPrintAccesses = true;
 
         Emulator emu = new Emulator(romFile.toPath(), runConfig);
         Gui gui = new Gui(emu);
