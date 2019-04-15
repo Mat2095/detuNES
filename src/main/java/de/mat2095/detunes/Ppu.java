@@ -27,9 +27,14 @@ class Ppu {
     private boolean regStatusV, regStatusS, regStatusO; // v-blank started, sprite 0 hit, sprite overflow
 
     private byte regOamAddr;
-    private byte regPpuScroll, regPpuAddr;
+
+    private int scrollX;
+    private int scrollY;
+
+    private int ppuAddr;
 
     private byte lastValueWritten;
+    private byte readBuffer;
 
     private final byte[][] nametables;
     private final byte[] palette;
@@ -123,13 +128,14 @@ class Ppu {
         if (emu.getRunConfig().debugPpuPrintAccesses) {
             System.out.println("PPU rd: " + Util.getHexString16bit(addr));
         }
+        byte result;
         switch (addr) {
             case 0x0000:
                 throw new IllegalArgumentException("Read from PPU-CTRL not allowed.");
             case 0x0001:
                 throw new IllegalArgumentException("Read from PPU-MASK not allowed.");
             case 0x0002:
-                byte result = (byte) (getRegStatus() | (lastValueWritten & 0b00011111));
+                result = (byte) (getRegStatus() | (lastValueWritten & 0b00011111));
                 regStatusV = false;
                 return result;
             case 0x0003:
@@ -141,8 +147,15 @@ class Ppu {
             case 0x0006:
                 throw new IllegalArgumentException("Read from PPU-ADDR not allowed.");
             case 0x0007:
-                // TODO: implement actual reading
-                return emu.readPpu(regPpuAddr & 0xFF);
+                if (ppuAddr < 0x3F00) {
+                    result = readBuffer;
+                    readBuffer = emu.readPpu(ppuAddr % 0x4000);
+                } else {
+                    readBuffer = emu.readPpu(ppuAddr % 0x4000);
+                    result = readBuffer;
+                }
+                ppuAddr += regCtrlI ? 32 : 1;
+                return result;
             default:
                 throw new Error("(addr % 8) has invalid value");
         }
@@ -174,17 +187,15 @@ class Ppu {
                 regOamAddr++;
                 break;
             case 0x0005:
-                // TODO: actually implement
-                regPpuScroll = value;
+                scrollY = scrollX;
+                scrollX = value & 0xFF;
                 break;
             case 0x0006:
-                // TODO: actually implement
-                regPpuAddr = value;
+                ppuAddr = (ppuAddr << 8) | (value & 0xFF);
                 break;
             case 0x0007:
-                // TODO: actually implement
-                emu.writePpu(regPpuAddr & 0xFF, value);
-                regPpuAddr += regCtrlI ? 32 : 1;
+                emu.writePpu(ppuAddr % 0x4000, value);
+                ppuAddr += regCtrlI ? 32 : 1;
                 break;
             default:
                 throw new Error("(addr % 8) has invalid value");
@@ -253,7 +264,7 @@ class Ppu {
 
         if (line < 240 && x < 256) {
             int screenAddr = line * 256 + x;
-            byte chrValue = emu.readPpu(x < 64 ? line * 64 + x : 0x3F00);
+            byte chrValue = emu.readPpu((line < 128 && x < 128) ? line * 128 + x : 0x3F00);
             emu.getRenderingContext().setBufferData(screenAddr, PALETTE[chrValue & 0x3F]);
         } else if (x == 256) {
             emu.getRenderingContext().sync();
