@@ -17,6 +17,7 @@ class Gui extends RenderingContext {
     private final ArrayList<JRadioButtonMenuItem> videoSizeMenuItems;
     private final BufferedImage offscreenImage;
     private final int[] bufferData;
+    private DebugPpuGui debugPpuGui;
 
     Gui(Emulator emu) {
         offscreenImage = new BufferedImage(INTERNAL_WIDTH, INTERNAL_HEIGHT, BufferedImage.TYPE_INT_RGB);
@@ -29,6 +30,29 @@ class Gui extends RenderingContext {
         videoSizeMenuItems = new ArrayList<>();
         videoSizeMenu.add(generateVideoSizeMenuItem(1));
         menuBar.add(videoSizeMenu);
+        JMenu debugMenu = new JMenu("Debug");
+        JCheckBoxMenuItem ppuDebugMenuItem = new JCheckBoxMenuItem("PPU");
+        ppuDebugMenuItem.addItemListener(e -> {
+            if (ppuDebugMenuItem.getState()) {
+                if (debugPpuGui == null) {
+                    debugPpuGui = new DebugPpuGui(emu);
+                    debugPpuGui.addWindowListener(new WindowAdapter() {
+                        @Override
+                        public void windowClosed(WindowEvent e) {
+                            ppuDebugMenuItem.setState(false);
+                            debugPpuGui = null;
+                        }
+                    });
+                }
+            } else {
+                if (debugPpuGui != null) {
+                    debugPpuGui.dispose();
+                    debugPpuGui = null;
+                }
+            }
+        });
+        debugMenu.add(ppuDebugMenuItem);
+        menuBar.add(debugMenu);
         frame.setJMenuBar(menuBar);
 
         canvas = new JPanel() {
@@ -85,6 +109,9 @@ class Gui extends RenderingContext {
         frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
+                if (debugPpuGui != null) {
+                    debugPpuGui.dispose();
+                }
                 frame.dispose();
                 emu.halt();
             }
