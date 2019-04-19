@@ -19,10 +19,14 @@ repositories {
     maven {
         url "https://repository.mulesoft.org/nexus/content/repositories/public/"
     }
+    maven {
+        url "http://repo.spring.io/plugins-release/"
+    }
 }
 
 dependencies {
     compile "com.github.strikerx3:jxinput:1.0.0"
+    compile "com.bulenkov:darcula:2018.2"
     testImplementation "org.junit.jupiter:junit-jupiter-api:5.4.0"
     testImplementation "org.junit.jupiter:junit-jupiter-params:5.4.0"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.4.0"

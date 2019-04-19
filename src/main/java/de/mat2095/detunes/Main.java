@@ -7,11 +7,18 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import javax.swing.*;
 
 
 class Main {
 
     public static void main(String[] args) throws IOException {
+        try {
+            UIManager.setLookAndFeel("com.bulenkov.darcula.DarculaLaf");
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
+            e.printStackTrace();
+        }
+
         // play game
         File romFile = new File(args[0]).getCanonicalFile();
         System.out.println("Reading ROM-file: " + romFile);
