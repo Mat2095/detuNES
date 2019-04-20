@@ -16,4 +16,14 @@ public class Util {
     public static String getHexString16bit(int i) {
         return String.format("0x%4s", Integer.toHexString(i).toUpperCase()).replace(' ', '0');
     }
+
+    public static int shiftRightNegArg(int i, int s) {
+        if (s > 0) {
+            return i >>> s;
+        } else if (s < 0) {
+            return i << -s;
+        } else {
+            return i;
+        }
+    }
 }
