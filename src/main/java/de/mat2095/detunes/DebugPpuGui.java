@@ -33,6 +33,10 @@ class DebugPpuGui extends JFrame {
     private final int[] chrOffscreenImageData;
     private final JComboBox<String> paletteChr;
     private final JCheckBox bigSpritesChr;
+    private final JPanel nametableCanvas;
+    private final BufferedImage nametableOffscreenImage;
+    private final int[] nametableOffscreenImageData;
+
 
     DebugPpuGui(Emulator emu) {
         super("detuNES - debug PPU");
@@ -69,8 +73,7 @@ class DebugPpuGui extends JFrame {
         add(palette,
             new GridBagConstraints(0, 0, 1, 1, 0, 0, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(2, 2, 2, 2), 0, 0));
 
-        JPanel chr = new JPanel();
-        chr.setLayout(new GridBagLayout());
+        JPanel chr = new JPanel(new GridBagLayout());
         chr.setBorder(new TitledBorder("CHR"));
         chrOffscreenImage = new BufferedImage(16 * 8, 32 * 8, BufferedImage.TYPE_INT_RGB);
         chrOffscreenImageData = ((DataBufferInt) (chrOffscreenImage.getRaster().getDataBuffer())).getData();
@@ -95,6 +98,24 @@ class DebugPpuGui extends JFrame {
         add(chr,
             new GridBagConstraints(1, 0, 1, 1, 0, 0, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(2, 2, 2, 2), 0, 0));
 
+        JPanel nametable = new JPanel();
+        nametable.setBorder(new TitledBorder("nametable"));
+        nametableOffscreenImage = new BufferedImage(512, 480, BufferedImage.TYPE_INT_RGB);
+        nametableOffscreenImageData = ((DataBufferInt) (nametableOffscreenImage.getRaster().getDataBuffer())).getData();
+        nametableCanvas = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                synchronized (nametableOffscreenImage) {
+                    g.drawImage(nametableOffscreenImage, 0, 0, null);
+                }
+            }
+        };
+        nametableCanvas.setPreferredSize(new Dimension(512, 480));
+        nametable.add(nametableCanvas);
+        add(nametable,
+            new GridBagConstraints(2, 0, 1, 1, 0, 0, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(2, 2, 2, 2), 0, 0));
+
         pack();
         setResizable(false);
         setLocation(5, 5);
@@ -108,6 +129,9 @@ class DebugPpuGui extends JFrame {
 
                 updateChrOffscreenImage();
                 chrCanvas.repaint();
+
+                updateNametableOffscreenImage();
+                nametableCanvas.repaint();
 
                 try {
                     Thread.sleep(100);
@@ -135,15 +159,48 @@ class DebugPpuGui extends JFrame {
                     tileY = tile >>> 4;
                 }
 
-                for (int x = 0; x < 8; x++) {
-                    for (int y = 0; y < 8; y++) {
-                        int value = (emu.readPpu(tileAddr + y) & (0x80 >>> x)) >>> (7 - x)
-                            | Util.shiftRightNegArg(emu.readPpu(tileAddr + y + 8) & (0x80 >>> x), 6 - x);
-                        int paletteIndex = value == 0 ? 0 : (selectedPalette << 2 | value);
-                        int nesColor = emu.readPpu(0x3F00 | paletteIndex);
-                        chrOffscreenImageData[(tileY * 8 + y) * 8 * 16 + (tileX * 8 + x)] = Ppu.PALETTE[nesColor];
+                renderTile(chrOffscreenImageData, tileAddr, selectedPalette, tileY * 8, tileX * 8, 8 * 16);
+            }
+        }
+    }
+
+    // TODO: doubleHeight relevant here?
+    private void updateNametableOffscreenImage() {
+        synchronized (nametableOffscreenImage) {
+
+            for (int tableY = 0; tableY < 2; tableY++) {
+                for (int tableX = 0; tableX < 2; tableX++) {
+
+                    for (int tileY = 0; tileY < 30; tileY++) {
+                        for (int tileX = 0; tileX < 32; tileX++) {
+
+                            int tile = emu.readPpu(0x2000 | (0x0800 * tableY) | (0x0400 * tableX) | (tileY * 32) | tileX) & 0xFF;
+                            int tileAddr = tile << 4;
+
+                            int attrAddr = 0x2000 | (0x0800 * tableY) | (0x0400 * tableX) | 0x03C0 | (0x0008 * (tileY >>> 2)) | (tileX >>> 2);
+                            int attrData = emu.readPpu(attrAddr) & 0xFF;
+                            int selectedPalette = (attrData >>> ((tileY & 0x02) + (tileX >>> 1 & 0x01)) * 2) & 0x03; // TODO: verify
+//                            System.out.println(tableY + " " + tableX + "  " + tileY + " " + tileX + "  " + Util.getHexString16bit(attrAddr)
+//                                + "  " + Util.getHexString((byte) attrData) + "  " + Util.getHexString((byte) selectedPalette));
+
+                            renderTile(nametableOffscreenImageData, tileAddr, selectedPalette, tableY * 240 + tileY * 8, tableX * 256 + tileX * 8, 512);
+                        }
                     }
                 }
+            }
+        }
+    }
+
+    private void renderTile(int[] imageData, int tileAddr, int selectedPalette, int yStart, int xStart, int imageWidth) {
+        for (int y = 0; y < 8; y++) {
+            int valueLowBits = emu.readPpu(tileAddr + y) & 0xFF;
+            int valueHighBits = emu.readPpu(tileAddr + y + 8) & 0xFF;
+            for (int x = 0; x < 8; x++) {
+                int value = (valueLowBits & (0x80 >>> x)) >>> (7 - x)
+                    | Util.shiftRightNegArg(valueHighBits & (0x80 >>> x), 6 - x);
+                int paletteIndex = value == 0 ? 0 : (selectedPalette << 2 | value);
+                int nesColor = emu.readPpu(0x3F00 | paletteIndex);
+                imageData[(yStart + y) * imageWidth + (xStart + x)] = Ppu.PALETTE[nesColor];
             }
         }
     }
