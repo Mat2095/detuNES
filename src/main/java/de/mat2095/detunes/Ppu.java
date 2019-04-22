@@ -195,7 +195,7 @@ class Ppu {
                 scrollX = value & 0xFF;
                 break;
             case 0x0006:
-                ppuAddr = (ppuAddr << 8) | (value & 0xFF);
+                ppuAddr = ((ppuAddr & 0xFF) << 8) | (value & 0xFF);
                 break;
             case 0x0007:
                 emu.writePpu(ppuAddr % 0x4000, value);

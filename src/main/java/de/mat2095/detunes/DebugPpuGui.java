@@ -164,7 +164,6 @@ class DebugPpuGui extends JFrame {
         }
     }
 
-    // TODO: fix battle-city logo
     private void updateNametableOffscreenImage() {
         synchronized (nametableOffscreenImage) {
 
