@@ -39,7 +39,7 @@ class Ppu {
     private final byte[][] nametables;
     private final byte[] palette;
     private final byte[] oam;
-    private int line, x;
+    private int scanline, dot;
     private Emulator emu;
 
     Ppu() {
@@ -51,7 +51,7 @@ class Ppu {
     void power(Emulator emu) {
         this.emu = emu;
         setRegStatus((byte) 0b10100000);
-        line = x = 0; // TODO: verify
+        scanline = dot = 0; // TODO: verify
     }
 
     byte getRegCtrl() {
@@ -257,32 +257,40 @@ class Ppu {
     }
 
     void render() {
-        if (line == 241 && x == 1) {
+        if (scanline == 241 && dot == 1) {
             regStatusV = true;
             if (regCtrlV) {
                 emu.fireNmi();
             }
         }
-        if (line == 261 && x == 1) {
+        if (scanline == 261 && dot == 1) {
             regStatusV = false;
             regStatusS = false;
             regStatusO = false;
         }
 
-        if (line < 240 && x < 256) {
-            int screenAddr = line * 256 + x;
-            byte chrValue = emu.readPpu((line < 128 && x < 128) ? line * 128 + x : 0x3F00);
-            emu.getRenderingContext().setBufferData(screenAddr, PALETTE[chrValue & 0x3F]);
-        } else if (x == 256) {
-            emu.getRenderingContext().sync();
+        if (scanline < 240) {
+            if (dot >= 1 && dot < 257) {
+
+                int x = dot - 1;
+                int y = scanline;
+
+                byte chrValue = emu.readPpu((y < 128 && x < 128) ? y * 128 + x : 0x3F00);
+                int color = PALETTE[chrValue & 0x3F]; // TODO: why &0x3F?
+
+                emu.getRenderingContext().setBufferData(y * 256 + x, color);
+
+            } else if (dot == 257) {
+                emu.getRenderingContext().sync();
+            }
         }
 
-        x++;
-        if (x > 341) {
-            x = 0;
-            line++;
-            if (line > 262) {
-                line = 0;
+        dot++;
+        if (dot > 340) {
+            dot = 0;
+            scanline++;
+            if (scanline > 261) {
+                scanline = 0;
             }
         }
     }
