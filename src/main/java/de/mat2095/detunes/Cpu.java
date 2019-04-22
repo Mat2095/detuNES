@@ -423,6 +423,14 @@ class Cpu {
         }
     }
 
+    void intNmi() {
+        pushStack((byte) (pc >> 8));
+        pushStack((byte) (pc & 0xFF));
+        pushStack(getP());
+        flagI = true;
+        pc = readDouble(0xFFFA);
+    }
+
     void exec() {
 
         if (pc < 0 || pc > 0xFFFF) {

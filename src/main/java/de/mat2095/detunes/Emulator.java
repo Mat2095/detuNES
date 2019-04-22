@@ -121,6 +121,14 @@ class Emulator {
         return memTextBuilder.toString().replace('\n', ' ');
     }
 
+    void fireNmi() {
+        cpu.intNmi();
+    }
+
+    public Ppu getPpu() {
+        return ppu;
+    }
+
     byte readCpu(int addr) {
         if (addr < 0x0000 || addr > 0xFFFF) {
             throw new IllegalArgumentException("CPU addr out of range: " + Util.getHexString16bit(addr));

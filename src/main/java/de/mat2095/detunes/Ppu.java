@@ -172,7 +172,11 @@ class Ppu {
         }
         switch (addr) {
             case 0x0000:
+                boolean oldRegCtrlV = regCtrlV;
                 setRegCtrl(value);
+                if (regStatusV && !oldRegCtrlV && regCtrlV) {
+                    emu.fireNmi();
+                }
                 break;
             case 0x0001:
                 setRegMask(value);
@@ -255,6 +259,9 @@ class Ppu {
     void render() {
         if (line == 241 && x == 1) {
             regStatusV = true;
+            if (regCtrlV) {
+                emu.fireNmi();
+            }
         }
         if (line == 261 && x == 1) {
             regStatusV = false;

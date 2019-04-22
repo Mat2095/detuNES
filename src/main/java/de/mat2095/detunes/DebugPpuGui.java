@@ -164,7 +164,7 @@ class DebugPpuGui extends JFrame {
         }
     }
 
-    // TODO: doubleHeight relevant here?
+    // TODO: fix battle-city logo
     private void updateNametableOffscreenImage() {
         synchronized (nametableOffscreenImage) {
 
@@ -176,12 +176,13 @@ class DebugPpuGui extends JFrame {
 
                             int tile = emu.readPpu(0x2000 | (0x0800 * tableY) | (0x0400 * tableX) | (tileY * 32) | tileX) & 0xFF;
                             int tileAddr = tile << 4;
+                            if ((emu.getPpu().getRegCtrl() & 0b00010000) != 0) {
+                                tileAddr |= 0x1000;
+                            }
 
                             int attrAddr = 0x2000 | (0x0800 * tableY) | (0x0400 * tableX) | 0x03C0 | (0x0008 * (tileY >>> 2)) | (tileX >>> 2);
                             int attrData = emu.readPpu(attrAddr) & 0xFF;
-                            int selectedPalette = (attrData >>> ((tileY & 0x02) + (tileX >>> 1 & 0x01)) * 2) & 0x03; // TODO: verify
-//                            System.out.println(tableY + " " + tableX + "  " + tileY + " " + tileX + "  " + Util.getHexString16bit(attrAddr)
-//                                + "  " + Util.getHexString((byte) attrData) + "  " + Util.getHexString((byte) selectedPalette));
+                            int selectedPalette = (attrData >>> ((tileY & 0x02) + (tileX >>> 1 & 0x01)) * 2) & 0x03;
 
                             renderTile(nametableOffscreenImageData, tileAddr, selectedPalette, tableY * 240 + tileY * 8, tableX * 256 + tileX * 8, 512);
                         }
@@ -199,7 +200,7 @@ class DebugPpuGui extends JFrame {
                 int value = (valueLowBits & (0x80 >>> x)) >>> (7 - x)
                     | Util.shiftRightNegArg(valueHighBits & (0x80 >>> x), 6 - x);
                 int paletteIndex = value == 0 ? 0 : (selectedPalette << 2 | value);
-                int nesColor = emu.readPpu(0x3F00 | paletteIndex);
+                int nesColor = emu.readPpu(0x3F00 | paletteIndex) & 0xFF;
                 imageData[(yStart + y) * imageWidth + (xStart + x)] = Ppu.PALETTE[nesColor];
             }
         }
