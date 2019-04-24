@@ -208,6 +208,12 @@ class Ppu {
         lastValueWritten = value;
     }
 
+    void doOamDma(byte value) {
+        for (int i = 0; i < 0x0100; i++) {
+            oam[((regOamAddr & 0xFF) + i) & 0xFF] = readCpu((value & 0xFF) * 0x100 + i);
+        }
+    }
+
     byte readPpu(int addr) {
         if (addr >= 0x2000 && addr < 0x3F00) {
             int quadrant = (addr / 0x0400) % 4;

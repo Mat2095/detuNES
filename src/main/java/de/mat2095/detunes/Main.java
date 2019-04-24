@@ -3,6 +3,7 @@ package de.mat2095.detunes;
 import com.github.strikerx3.jxinput.XInputComponents;
 import com.github.strikerx3.jxinput.XInputDevice;
 import com.github.strikerx3.jxinput.exceptions.XInputNotLoadedException;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;

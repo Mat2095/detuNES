@@ -166,7 +166,7 @@ class Emulator {
             ppu.writeCpu(addr, value);
         } else if (addr < 0x4020) {
             if (addr == 0x4014) {
-                throw new IllegalArgumentException("OAMDMA (write) not yet implemented: " + Util.getHexString16bit(addr));
+                ppu.doOamDma(value);
             } else if (addr == 0x4016) {
                 throw new IllegalArgumentException("Joypad write strobe not yet implemented: " + Util.getHexString16bit(addr));
             } else if (addr >= 0x4018) {
