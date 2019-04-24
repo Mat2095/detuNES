@@ -210,7 +210,7 @@ class Ppu {
 
     void doOamDma(byte value) {
         for (int i = 0; i < 0x0100; i++) {
-            oam[((regOamAddr & 0xFF) + i) & 0xFF] = readCpu((value & 0xFF) * 0x100 + i);
+            oam[((regOamAddr & 0xFF) + i) & 0xFF] = emu.readCpu((value & 0xFF) * 0x100 + i);
         }
     }
 
