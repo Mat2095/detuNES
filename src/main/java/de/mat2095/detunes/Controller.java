@@ -21,7 +21,7 @@ class Controller {
         for (int player = 0; player < 2; player++) {
             try {
                 controllers[player] = XInputDevice.getDeviceFor(player);
-            } catch (XInputNotLoadedException e) {
+            } catch (XInputNotLoadedException | UnsatisfiedLinkError | NoClassDefFoundError e) {
                 e.printStackTrace();
             }
             states[player] = 0;
@@ -30,9 +30,13 @@ class Controller {
 
     byte read(int player) {
         boolean result;
-        controllers[player].poll();
         if (strobe) {
-            result = controllers[player].getComponents().getButtons().b;
+            if (controllers[player] != null) {
+                controllers[player].poll();
+                result = controllers[player].getComponents().getButtons().b;
+            } else {
+                result = false;
+            }
         } else {
             result = (states[player] & 0x01) != 0;
             states[player] >>>= 1;
@@ -45,6 +49,9 @@ class Controller {
         strobe = newStrobe;
         if (!strobe) { // Actually, states are continuously update during strobe, but the result is only observable AFTER strobing
             for (int player = 0; player < 2; player++) {
+                if (controllers[player] == null) {
+                    continue;
+                }
                 controllers[player].poll();
                 XInputComponents controlerState = controllers[player].getComponents();
                 states[player] = 0;
