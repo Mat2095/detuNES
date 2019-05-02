@@ -13,6 +13,7 @@ class Main {
 
         System.setProperty("sun.java2d.opengl", "false"); // just in case... OpenGL causes major glitches with some drivers
 
+        UIManager.getFont("Label.font"); // workaround to fix issue on linux: https://github.com/bulenkov/Darcula/issues/29
         try {
             UIManager.setLookAndFeel("com.bulenkov.darcula.DarculaLaf");
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {

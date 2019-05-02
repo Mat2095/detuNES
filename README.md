@@ -27,6 +27,7 @@ Features that WON'T be implemented:
 - Open the Gradle project
 - Enable "Use auto-import"
 - Select "Use local gradle distribution", using at least version 5.3
+- Note: make sure you're using Java 8, since Darcula causes problems with Java 9+ (https://github.com/bulenkov/Darcula/issues/41)
 
 ### Usage
 
