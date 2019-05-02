@@ -15,13 +15,20 @@ class Gui extends RenderingContext {
     private final JFrame frame;
     private final JPanel canvas;
     private final ArrayList<JRadioButtonMenuItem> videoSizeMenuItems;
-    private final BufferedImage offscreenImage;
-    private final int[] bufferData;
+    private final BufferedImage offscreenImage1, offscreenImage2;
+    private final int[] bufferData1, bufferData2;
+    private volatile boolean secondBufferWIP;
+    private final Object bufferLockRead, bufferLockWrite;
     private DebugPpuGui debugPpuGui;
 
     Gui(Emulator emu) {
-        offscreenImage = new BufferedImage(INTERNAL_WIDTH, INTERNAL_HEIGHT, BufferedImage.TYPE_INT_RGB);
-        bufferData = ((DataBufferInt) (offscreenImage.getRaster().getDataBuffer())).getData();
+        offscreenImage1 = new BufferedImage(INTERNAL_WIDTH, INTERNAL_HEIGHT, BufferedImage.TYPE_INT_RGB);
+        bufferData1 = ((DataBufferInt) (offscreenImage1.getRaster().getDataBuffer())).getData();
+        offscreenImage2 = new BufferedImage(INTERNAL_WIDTH, INTERNAL_HEIGHT, BufferedImage.TYPE_INT_RGB);
+        bufferData2 = ((DataBufferInt) (offscreenImage2.getRaster().getDataBuffer())).getData();
+        secondBufferWIP = false;
+        bufferLockRead = new Object();
+        bufferLockWrite = new Object();
 
         frame = new JFrame("detuNES");
 
@@ -71,8 +78,8 @@ class Gui extends RenderingContext {
                     y = (h - (w * INTERNAL_HEIGHT / INTERNAL_WIDTH)) / 2;
                     h = w * INTERNAL_HEIGHT / INTERNAL_WIDTH;
                 }
-                synchronized (offscreenImage) {
-                    g.drawImage(offscreenImage, x, y, w, h, null);
+                synchronized (bufferLockRead) {
+                    g.drawImage(secondBufferWIP ? offscreenImage1 : offscreenImage2, x, y, w, h, null);
                 }
             }
 
@@ -148,12 +155,17 @@ class Gui extends RenderingContext {
     }
 
     void setBufferData(int addr, int value) {
-        synchronized (offscreenImage) {
-            bufferData[addr] = value;
+        synchronized (bufferLockWrite) {
+            (secondBufferWIP ? bufferData2 : bufferData1)[addr] = value;
         }
     }
 
     void sync() {
+        synchronized (bufferLockRead) {
+            synchronized (bufferLockWrite) {
+                secondBufferWIP = !secondBufferWIP;
+            }
+        }
         canvas.repaint();
     }
 }

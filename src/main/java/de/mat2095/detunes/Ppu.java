@@ -263,18 +263,6 @@ class Ppu {
     }
 
     void render() {
-        if (scanline == 241 && dot == 1) {
-            regStatusV = true;
-            if (regCtrlV) {
-                emu.fireNmi();
-            }
-        }
-        if (scanline == 261 && dot == 1) {
-            regStatusV = false;
-            regStatusS = false;
-            regStatusO = false;
-        }
-
         if (scanline < 240) {
             if (dot >= 1 && dot < 257) {
 
@@ -286,8 +274,20 @@ class Ppu {
 
                 emu.getRenderingContext().setBufferData(y * 256 + x, color);
 
-            } else if (dot == 257) {
+            }
+        } else if (scanline == 241) {
+            if (dot == 1) {
                 emu.getRenderingContext().sync();
+                regStatusV = true;
+                if (regCtrlV) {
+                    emu.fireNmi();
+                }
+            }
+        } else if (scanline == 261) {
+            if (dot == 1) {
+                regStatusV = false;
+                regStatusS = false;
+                regStatusO = false;
             }
         }
 
