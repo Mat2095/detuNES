@@ -10,6 +10,9 @@ import javax.swing.*;
 class Main {
 
     public static void main(String[] args) throws IOException {
+
+        System.setProperty("sun.java2d.opengl", "false"); // just in case... OpenGL causes major glitches with some drivers
+
         try {
             UIManager.setLookAndFeel("com.bulenkov.darcula.DarculaLaf");
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
