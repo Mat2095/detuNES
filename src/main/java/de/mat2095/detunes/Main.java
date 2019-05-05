@@ -11,7 +11,7 @@ class Main {
 
     public static void main(String[] args) throws IOException {
 
-        System.setProperty("sun.java2d.opengl", "false"); // just in case... OpenGL causes major glitches with some drivers
+        System.setProperty("sun.java2d.opengl", "false"); // just in case... OpenGL causes major glitches on Linux
 
         UIManager.getFont("Label.font"); // workaround to fix issue on linux: https://github.com/bulenkov/Darcula/issues/29
         try {
