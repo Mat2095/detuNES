@@ -5,6 +5,9 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.ArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import javax.swing.*;
 
 
@@ -18,6 +21,7 @@ class Gui extends RenderingContext {
     private final BufferedImage offscreenImage1, offscreenImage2;
     private final int[] bufferData1, bufferData2;
     private volatile boolean secondBufferWIP;
+    private volatile boolean redrawNecessary;
     private final Object bufferLockRead, bufferLockWrite;
     private DebugPpuGui debugPpuGui;
 
@@ -113,14 +117,31 @@ class Gui extends RenderingContext {
         frame.pack();
         frame.setLocationRelativeTo(null); // center of screen
 
+        GraphicsEnvironment localGraphicsEnvironment = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        int refreshRate = localGraphicsEnvironment.getDefaultScreenDevice().getDisplayMode().getRefreshRate();
+        long repaintDelay = 1000000000 / (refreshRate != DisplayMode.REFRESH_RATE_UNKNOWN ? refreshRate : 60);
+        ScheduledExecutorService repaintThread = Executors.newSingleThreadScheduledExecutor();
+        repaintThread.scheduleAtFixedRate(() -> {
+            if (redrawNecessary) {
+                redrawNecessary = false;
+                canvas.repaint();
+            }
+        }, 1, repaintDelay, TimeUnit.NANOSECONDS);
+
         frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
+                repaintThread.shutdown();
                 if (debugPpuGui != null) {
                     debugPpuGui.dispose();
                 }
                 frame.dispose();
                 emu.halt();
+                try {
+                    repaintThread.awaitTermination(1000, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
             }
         });
         frame.setVisible(true);
@@ -166,6 +187,6 @@ class Gui extends RenderingContext {
                 secondBufferWIP = !secondBufferWIP;
             }
         }
-        canvas.repaint();
+        redrawNecessary = true;
     }
 }
