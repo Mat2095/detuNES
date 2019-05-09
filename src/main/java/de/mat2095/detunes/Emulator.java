@@ -18,14 +18,18 @@ class Emulator {
     private boolean stopCheckRunning;
     private boolean running;
 
-    Emulator(Path nesFile, RunConfiguration runConfig) throws IOException {
+    Emulator(Path nesFile, InputProvider ip1, InputProvider ip2, RunConfiguration runConfig) throws IOException {
         byte[] nesBytes = Files.readAllBytes(nesFile);
         cartridge = Cartridge.createCartridge(nesBytes);
         cpu = new Cpu();
         ppu = new Ppu();
         apu = new Apu();
-        controller = new Controller();
+        controller = new Controller(ip1, ip2);
         this.runConfig = runConfig;
+    }
+
+    Emulator(Path nesFile, RunConfiguration runConfig) throws IOException {
+        this(nesFile, new InputProviderDummy(), new InputProviderDummy(), runConfig);
     }
 
     RenderingContext getRenderingContext() {
