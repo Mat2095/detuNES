@@ -133,7 +133,7 @@ class Emulator {
         cpu.intNmi();
     }
 
-    public Ppu getPpu() {
+    Ppu getPpu() {
         return ppu;
     }
 

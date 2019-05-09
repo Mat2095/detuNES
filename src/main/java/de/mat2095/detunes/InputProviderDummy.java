@@ -1,8 +1,8 @@
 package de.mat2095.detunes;
 
-public class InputProviderDummy implements InputProvider {
+class InputProviderDummy implements InputProvider {
 
-    public InputProviderDummy() {
+    InputProviderDummy() {
     }
 
     @Override

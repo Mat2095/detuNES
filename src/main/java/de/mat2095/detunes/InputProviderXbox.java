@@ -4,13 +4,14 @@ import com.github.strikerx3.jxinput.XInputComponents;
 import com.github.strikerx3.jxinput.XInputDevice;
 import com.github.strikerx3.jxinput.exceptions.XInputNotLoadedException;
 
-public class InputProviderXbox implements InputProvider {
+
+class InputProviderXbox implements InputProvider {
 
     private static final float ANALOG_DEADZONE = 0.5f;
 
     private final XInputDevice controller;
 
-    public InputProviderXbox(int player) throws XInputNotLoadedException {
+    InputProviderXbox(int player) throws XInputNotLoadedException {
         try {
             controller = XInputDevice.getDeviceFor(player);
         } catch (UnsatisfiedLinkError | NoClassDefFoundError e) {
@@ -35,9 +36,9 @@ public class InputProviderXbox implements InputProvider {
             case BUTTON_START:
                 return controllerState.getButtons().start;
             case BUTTON_UP:
-                return controllerState.getButtons().up || controllerState.getAxes().ly < -ANALOG_DEADZONE;
+                return controllerState.getButtons().up || controllerState.getAxes().ly > ANALOG_DEADZONE;
             case BUTTON_DOWN:
-                return controllerState.getButtons().down || controllerState.getAxes().ly > ANALOG_DEADZONE;
+                return controllerState.getButtons().down || controllerState.getAxes().ly < -ANALOG_DEADZONE;
             case BUTTON_LEFT:
                 return controllerState.getButtons().left || controllerState.getAxes().lx < -ANALOG_DEADZONE;
             case BUTTON_RIGHT:
