@@ -1,6 +1,5 @@
 package de.mat2095.detunes;
 
-import com.github.strikerx3.jxinput.exceptions.XInputNotLoadedException;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -30,19 +29,8 @@ class Main {
         runConfig.sleepPeriodicity = 20000;
 //        runConfig.debugPpuPrintAccesses = true;
 
-        InputProvider ip1, ip2;
-        try {
-            ip1 = new InputProviderXbox(0);
-        } catch (XInputNotLoadedException e) {
-            e.printStackTrace();
-            ip1 = new InputProviderDummy();
-        }
-        try {
-            ip2 = new InputProviderXbox(1);
-        } catch (XInputNotLoadedException e) {
-            e.printStackTrace();
-            ip2 = new InputProviderDummy();
-        }
+        InputProvider ip1 = new InputProviderGamepad(0);
+        InputProvider ip2 = new InputProviderGamepad(1);
 
         Emulator emu = new Emulator(romFile.toPath(), ip1, ip2, runConfig);
         Gui gui = new Gui(emu);
