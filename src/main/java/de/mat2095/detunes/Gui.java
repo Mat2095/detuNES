@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.*;
 
 
-class Gui extends RenderingContext {
+class Gui implements RenderingContext {
 
     private static final int INTERNAL_WIDTH = 256, INTERNAL_HEIGHT = 240;
 
@@ -175,13 +175,15 @@ class Gui extends RenderingContext {
         }
     }
 
-    void setBufferData(int addr, int value) {
+    @Override
+    public void setBufferData(int addr, int value) {
         synchronized (bufferLockWrite) {
             (secondBufferWIP ? bufferData2 : bufferData1)[addr] = value;
         }
     }
 
-    void sync() {
+    @Override
+    public void sync() {
         synchronized (bufferLockRead) {
             synchronized (bufferLockWrite) {
                 secondBufferWIP = !secondBufferWIP;

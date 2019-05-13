@@ -45,13 +45,12 @@ class Emulator {
             int[] data = new int[240 * 256];
 
             @Override
-            void setBufferData(int addr, int value) {
+            public void setBufferData(int addr, int value) {
                 this.data[addr] = value;
             }
 
             @Override
-            void sync() {
-
+            public void sync() {
             }
         };
     }
@@ -113,7 +112,7 @@ class Emulator {
         running = false;
     }
 
-    public RunConfiguration getRunConfig() {
+    RunConfiguration getRunConfig() {
         return runConfig;
     }
 
