@@ -1,10 +1,10 @@
 package de.mat2095.detunes;
 
+import org.junit.jupiter.api.Test;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import org.junit.jupiter.api.Test;
 
 
 class NesIntegrationTest {
