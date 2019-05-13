@@ -4,6 +4,7 @@ package de.mat2095.detunes;
 import com.studiohartman.jamepad.ControllerManager;
 import com.studiohartman.jamepad.ControllerState;
 
+
 class InputProviderGamepad implements InputProvider {
 
     private static final float ANALOG_DEADZONE = 0.5f;

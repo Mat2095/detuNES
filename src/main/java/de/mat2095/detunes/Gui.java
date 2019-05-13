@@ -1,6 +1,5 @@
 package de.mat2095.detunes;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -9,6 +8,7 @@ import java.util.ArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import javax.swing.*;
 
 
 class Gui implements RenderingContext {
