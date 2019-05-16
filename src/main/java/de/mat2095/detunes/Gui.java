@@ -89,7 +89,7 @@ class Gui implements RenderingContext {
 
         };
 
-        InputProviderKeyboard ipk = new InputProviderKeyboard();
+        InputProviderImpl ipk = new InputProviderImpl();
         canvas.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
