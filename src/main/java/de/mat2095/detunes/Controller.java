@@ -3,16 +3,16 @@ package de.mat2095.detunes;
 
 class Controller {
 
-    private final InputProvider[] ips;
+    private Emulator emu;
     private boolean strobe;
     private final int[] states;
 
-    Controller(InputProvider ip1, InputProvider ip2) {
-        ips = new InputProvider[]{ip1, ip2};
+    Controller() {
         states = new int[2];
     }
 
-    void power() {
+    void power(Emulator emu) {
+        this.emu = emu;
         strobe = false;
         for (int player = 0; player < 2; player++) {
             states[player] = 0;
@@ -22,7 +22,7 @@ class Controller {
     byte read(int player) {
         boolean result;
         if (strobe) {
-            result = ips[player].isButtonPressed(InputProvider.Button.BUTTON_A);
+            result = emu.isButtonPressed(player, InputProvider.Button.BUTTON_A);
         } else {
             result = (states[player] & 0x01) != 0;
             states[player] >>>= 1;
@@ -37,7 +37,7 @@ class Controller {
             for (int player = 0; player < 2; player++) {
                 states[player] = 0;
                 for (InputProvider.Button button : InputProvider.Button.values()) {
-                    states[player] |= ips[player].isButtonPressed(button) ? button.code : 0;
+                    states[player] |= emu.isButtonPressed(player, button) ? button.code : 0;
                 }
             }
         }

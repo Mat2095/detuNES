@@ -5,7 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 
-class Emulator {
+class Emulator implements RenderingContext, InputProvider {
 
     private final Cpu cpu;
     private final Ppu ppu;
@@ -14,52 +14,49 @@ class Emulator {
     private final Cartridge cartridge;
     private final RunConfiguration runConfig;
     private RenderingContext renderingContext;
+    private InputProvider inputProvider;
     private long cpuInstrs;
     private boolean stopCheckRunning;
     private boolean running;
 
-    Emulator(Path nesFile, InputProvider ip1, InputProvider ip2, RunConfiguration runConfig) throws IOException {
+    Emulator(Path nesFile, RunConfiguration runConfig) throws IOException {
         byte[] nesBytes = Files.readAllBytes(nesFile);
         cartridge = Cartridge.createCartridge(nesBytes);
         cpu = new Cpu();
         ppu = new Ppu();
         apu = new Apu();
-        controller = new Controller(ip1, ip2);
+        controller = new Controller();
         this.runConfig = runConfig;
-    }
-
-    Emulator(Path nesFile, RunConfiguration runConfig) throws IOException {
-        this(nesFile, new InputProviderDummy(), new InputProviderDummy(), runConfig);
-    }
-
-    RenderingContext getRenderingContext() {
-        return renderingContext;
     }
 
     void setRenderingContext(RenderingContext renderingContext) {
         this.renderingContext = renderingContext;
     }
 
-    void resetRenderingContext() {
-        renderingContext = new RenderingContext() {
-            int[] data = new int[240 * 256];
+    @Override
+    public void setBufferData(int addr, int value) {
+        if (renderingContext != null) {
+            renderingContext.setBufferData(addr, value);
+        }
+    }
 
-            @Override
-            public void setBufferData(int addr, int value) {
-                this.data[addr] = value;
-            }
+    @Override
+    public void sync() {
+        if (renderingContext != null) {
+            renderingContext.sync();
+        }
+    }
 
-            @Override
-            public void sync() {
-            }
-        };
+    void setInputProvider(InputProvider inputProvider) {
+        this.inputProvider = inputProvider;
+    }
+
+    @Override
+    public boolean isButtonPressed(int player, InputProvider.Button button) {
+        return inputProvider != null && inputProvider.isButtonPressed(player, button);
     }
 
     void power() {
-        if (renderingContext == null) {
-            resetRenderingContext();
-        }
-
         cpu.power(this);
         if (runConfig.startPC != null) {
             cpu.pc = runConfig.startPC;
@@ -70,7 +67,7 @@ class Emulator {
 
         apu.power();
 
-        controller.power();
+        controller.power(this);
 
         stopCheckRunning = false;
         running = false;

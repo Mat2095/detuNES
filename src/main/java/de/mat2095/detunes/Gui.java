@@ -88,6 +88,27 @@ class Gui implements RenderingContext {
             }
 
         };
+
+        InputProviderKeyboard ipk = new InputProviderKeyboard();
+        canvas.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                ipk.keyPressed(e.getKeyCode());
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                ipk.keyReleased(e.getKeyCode());
+            }
+        });
+        canvas.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent e) {
+                ipk.focusLost();
+            }
+        });
+        emu.setInputProvider(ipk);
+
         canvas.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {

@@ -29,10 +29,7 @@ class Main {
         runConfig.sleepPeriodicity = 20000;
 //        runConfig.debugPpuPrintAccesses = true;
 
-        InputProvider ip1 = new InputProviderGamepad(0);
-        InputProvider ip2 = new InputProviderGamepad(1);
-
-        Emulator emu = new Emulator(romFile.toPath(), ip1, ip2, runConfig);
+        Emulator emu = new Emulator(romFile.toPath(), runConfig);
         Gui gui = new Gui(emu);
         emu.power();
         emu.run();

@@ -272,12 +272,12 @@ class Ppu {
                 byte chrValue = emu.readPpu((y < 128 && x < 128) ? y * 128 + x : 0x3F00);
                 int color = PALETTE[chrValue & 0x3F]; // TODO: why &0x3F?
 
-                emu.getRenderingContext().setBufferData(y * 256 + x, color);
+                emu.setBufferData(y * 256 + x, color);
 
             }
         } else if (scanline == 241) {
             if (dot == 1) {
-                emu.getRenderingContext().sync();
+                emu.sync();
                 regStatusV = true;
                 if (regCtrlV) {
                     emu.fireNmi();

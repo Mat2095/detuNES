@@ -2,7 +2,7 @@ package de.mat2095.detunes;
 
 public interface InputProvider {
 
-    boolean isButtonPressed(Button button);
+    boolean isButtonPressed(int player, Button button);
 
     enum Button {
 

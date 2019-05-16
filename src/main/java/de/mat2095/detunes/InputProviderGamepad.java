@@ -8,22 +8,17 @@ import com.studiohartman.jamepad.ControllerState;
 class InputProviderGamepad implements InputProvider {
 
     private static final float ANALOG_DEADZONE = 0.5f;
-    private static final ControllerManager cm;
 
-    private final int player;
+    private final ControllerManager cm;
 
-    static {
+    InputProviderGamepad() {
         cm = new ControllerManager();
         cm.initSDLGamepad();
         Runtime.getRuntime().addShutdownHook(new Thread(cm::quitSDLGamepad));
     }
 
-    InputProviderGamepad(int player) {
-        this.player = player;
-    }
-
     @Override
-    public boolean isButtonPressed(Button button) {
+    public boolean isButtonPressed(int player, Button button) {
 
         ControllerState controllerState = cm.getState(player);
 
