@@ -10,13 +10,12 @@ Features that WILL be implemented:
 - passing certain test-ROMs
 - running some games and outputting the graphics
 - common mappers: NROM, MMC1, MMC3
-- input from XInput (Xbox 360 controller)
+- configurable input, supporting keyboard and gamepads (Windows and Linux, DirectInput and XInput, thanks to [Jamepad](https://github.com/williamahartman/Jamepad))
 
 Features that MIGHT be implemented:
 - accurate timing
 - fancy upscaling (xBRZ?)
 - other mappers: UNROM, CNROM, ?
-- keyboard-input
 
 Features that WON'T be implemented:
 - audio output (APU will only be implemented as far as necessary, but no actual output)
