@@ -2,15 +2,15 @@ package de.mat2095.detunes;
 
 import com.studiohartman.jamepad.ControllerManager;
 import com.studiohartman.jamepad.ControllerState;
-
 import java.awt.event.KeyEvent;
 import java.util.*;
+
 
 public class InputProviderImpl implements InputProvider {
 
     private static final float ANALOG_DEADZONE = 0.5f;
 
-    private final List<Map<Button, InputTriggers>> inputMappings;
+    private final List<Map<Button, InputConditions>> inputMappings;
 
     private final Set<Integer> pressedKeys;
     private final ControllerManager cm;
@@ -19,9 +19,9 @@ public class InputProviderImpl implements InputProvider {
         pressedKeys = new HashSet<>();
         inputMappings = new ArrayList<>(2);
         for (int player = 0; player < 2; player++) {
-            Map<Button, InputTriggers> inputMapping = new EnumMap<>(Button.class);
+            Map<Button, InputConditions> inputMapping = new EnumMap<>(Button.class);
             for (Button button : Button.values()) {
-                inputMapping.put(button, new InputTriggers());
+                inputMapping.put(button, new InputConditions());
             }
             inputMappings.add(inputMapping);
         }
@@ -53,29 +53,29 @@ public class InputProviderImpl implements InputProvider {
 
         for (int player = 0; player < 2; player++) {
             inputMappings.get(player).get(Button.BUTTON_A)
-                .controllerInputTriggers.add(new ControllerInputTrigger(player, ControllerInputType.BUTTON_B));
+                .controllerInputConditions.add(new ControllerInputCondition(player, ControllerInputConditionType.BUTTON_B));
             inputMappings.get(player).get(Button.BUTTON_B)
-                .controllerInputTriggers.add(new ControllerInputTrigger(player, ControllerInputType.BUTTON_A));
+                .controllerInputConditions.add(new ControllerInputCondition(player, ControllerInputConditionType.BUTTON_A));
             inputMappings.get(player).get(Button.BUTTON_SELECT)
-                .controllerInputTriggers.add(new ControllerInputTrigger(player, ControllerInputType.BUTTON_BACK));
+                .controllerInputConditions.add(new ControllerInputCondition(player, ControllerInputConditionType.BUTTON_BACK));
             inputMappings.get(player).get(Button.BUTTON_START)
-                .controllerInputTriggers.add(new ControllerInputTrigger(player, ControllerInputType.BUTTON_START));
+                .controllerInputConditions.add(new ControllerInputCondition(player, ControllerInputConditionType.BUTTON_START));
             inputMappings.get(player).get(Button.BUTTON_UP)
-                .controllerInputTriggers.add(new ControllerInputTrigger(player, ControllerInputType.DPAD_UP));
+                .controllerInputConditions.add(new ControllerInputCondition(player, ControllerInputConditionType.DPAD_UP));
             inputMappings.get(player).get(Button.BUTTON_UP)
-                .controllerInputTriggers.add(new ControllerInputTrigger(player, ControllerInputType.LEFT_STICK_UP));
+                .controllerInputConditions.add(new ControllerInputCondition(player, ControllerInputConditionType.LEFT_STICK_UP));
             inputMappings.get(player).get(Button.BUTTON_DOWN)
-                .controllerInputTriggers.add(new ControllerInputTrigger(player, ControllerInputType.DPAD_DOWN));
+                .controllerInputConditions.add(new ControllerInputCondition(player, ControllerInputConditionType.DPAD_DOWN));
             inputMappings.get(player).get(Button.BUTTON_DOWN)
-                .controllerInputTriggers.add(new ControllerInputTrigger(player, ControllerInputType.LEFT_STICK_DOWN));
+                .controllerInputConditions.add(new ControllerInputCondition(player, ControllerInputConditionType.LEFT_STICK_DOWN));
             inputMappings.get(player).get(Button.BUTTON_LEFT)
-                .controllerInputTriggers.add(new ControllerInputTrigger(player, ControllerInputType.DPAD_LEFT));
+                .controllerInputConditions.add(new ControllerInputCondition(player, ControllerInputConditionType.DPAD_LEFT));
             inputMappings.get(player).get(Button.BUTTON_LEFT)
-                .controllerInputTriggers.add(new ControllerInputTrigger(player, ControllerInputType.LEFT_STICK_LEFT));
+                .controllerInputConditions.add(new ControllerInputCondition(player, ControllerInputConditionType.LEFT_STICK_LEFT));
             inputMappings.get(player).get(Button.BUTTON_RIGHT)
-                .controllerInputTriggers.add(new ControllerInputTrigger(player, ControllerInputType.DPAD_RIGHT));
+                .controllerInputConditions.add(new ControllerInputCondition(player, ControllerInputConditionType.DPAD_RIGHT));
             inputMappings.get(player).get(Button.BUTTON_RIGHT)
-                .controllerInputTriggers.add(new ControllerInputTrigger(player, ControllerInputType.LEFT_STICK_RIGHT));
+                .controllerInputConditions.add(new ControllerInputCondition(player, ControllerInputConditionType.LEFT_STICK_RIGHT));
         }
     }
 
@@ -93,90 +93,33 @@ public class InputProviderImpl implements InputProvider {
 
     @Override
     public boolean isButtonPressed(int player, Button button) {
-        InputTriggers inputTriggers = inputMappings.get(player).get(button);
-        return !Collections.disjoint(inputTriggers.keyboardCodes, pressedKeys)
-            || inputTriggers.controllerInputTriggers.stream().anyMatch(this::isActive);
+        InputConditions inputConditions = inputMappings.get(player).get(button);
+        return !Collections.disjoint(inputConditions.keyboardCodes, pressedKeys)
+            || inputConditions.controllerInputConditions.stream().anyMatch(ControllerInputCondition::isFulfilled);
     }
 
-    private boolean isActive(ControllerInputTrigger controllerInputTrigger) { // TODO: naming (trigger/event/... and active/fired/...)
-        ControllerState controllerState = cm.getState(controllerInputTrigger.player); // TODO: caching?
 
-        switch (controllerInputTrigger.type) {
-            case DPAD_UP:
-                return controllerState.dpadUp;
-            case DPAD_DOWN:
-                return controllerState.dpadDown;
-            case DPAD_LEFT:
-                return controllerState.dpadLeft;
-            case DPAD_RIGHT:
-                return controllerState.dpadRight;
-            case BUTTON_A:
-                return controllerState.a;
-            case BUTTON_B:
-                return controllerState.b;
-            case BUTTON_X:
-                return controllerState.x;
-            case BUTTON_Y:
-                return controllerState.y;
-            case BUTTON_BACK:
-                return controllerState.back;
-            case BUTTON_START:
-                return controllerState.start;
-            case BUTTON_GUIDE:
-                return controllerState.guide;
-            case BUMPER_LEFT:
-                return controllerState.lb;
-            case BUMPER_RIGHT:
-                return controllerState.rb;
-            case TRIGGER_LEFT:
-                return controllerState.leftTrigger > ANALOG_DEADZONE;
-            case TRIGGER_RIGHT:
-                return controllerState.rightTrigger > ANALOG_DEADZONE;
-            case LEFT_STICK_UP:
-                return controllerState.leftStickY > ANALOG_DEADZONE;
-            case LEFT_STICK_DOWN:
-                return controllerState.leftStickY < -ANALOG_DEADZONE;
-            case LEFT_STICK_LEFT:
-                return controllerState.leftStickX < -ANALOG_DEADZONE;
-            case LEFT_STICK_RIGHT:
-                return controllerState.leftStickX > ANALOG_DEADZONE;
-            case LEFT_STICK_CLICK:
-                return controllerState.leftStickClick;
-            case RIGHT_STICK_UP:
-                return controllerState.rightStickY > ANALOG_DEADZONE;
-            case RIGHT_STICK_DOWN:
-                return controllerState.rightStickY < -ANALOG_DEADZONE;
-            case RIGHT_STICK_LEFT:
-                return controllerState.rightStickX < -ANALOG_DEADZONE;
-            case RIGHT_STICK_RIGHT:
-                return controllerState.rightStickX > ANALOG_DEADZONE;
-            case RIGHT_STICK_CLICK:
-                return controllerState.rightStickClick;
-            default:
-                throw new Error("Invalid ControllerInputType");
-        }
-    }
-
-    class InputTriggers {
+    private class InputConditions {
         final Set<Integer> keyboardCodes;
-        final Set<ControllerInputTrigger> controllerInputTriggers;
+        final Set<ControllerInputCondition> controllerInputConditions;
 
-        InputTriggers() {
+        InputConditions() {
             keyboardCodes = new HashSet<>();
-            controllerInputTriggers = new HashSet<>();
+            controllerInputConditions = new HashSet<>();
         }
 
         void clear() {
             keyboardCodes.clear();
-            controllerInputTriggers.clear();
+            controllerInputConditions.clear();
         }
     }
 
-    class ControllerInputTrigger {
-        final int player;
-        final ControllerInputType type;
 
-        ControllerInputTrigger(int player, ControllerInputType type) {
+    private class ControllerInputCondition {
+        final int player;
+        final ControllerInputConditionType type;
+
+        ControllerInputCondition(int player, ControllerInputConditionType type) {
             if (player < 0) {
                 throw new IllegalArgumentException("player must be non-negative.");
             }
@@ -187,11 +130,70 @@ public class InputProviderImpl implements InputProvider {
             this.type = type;
         }
 
+        private boolean isFulfilled() {
+            ControllerState controllerState = cm.getState(player); // TODO: caching?
+
+            switch (type) {
+                case DPAD_UP:
+                    return controllerState.dpadUp;
+                case DPAD_DOWN:
+                    return controllerState.dpadDown;
+                case DPAD_LEFT:
+                    return controllerState.dpadLeft;
+                case DPAD_RIGHT:
+                    return controllerState.dpadRight;
+                case BUTTON_A:
+                    return controllerState.a;
+                case BUTTON_B:
+                    return controllerState.b;
+                case BUTTON_X:
+                    return controllerState.x;
+                case BUTTON_Y:
+                    return controllerState.y;
+                case BUTTON_BACK:
+                    return controllerState.back;
+                case BUTTON_START:
+                    return controllerState.start;
+                case BUTTON_GUIDE:
+                    return controllerState.guide;
+                case BUMPER_LEFT:
+                    return controllerState.lb;
+                case BUMPER_RIGHT:
+                    return controllerState.rb;
+                case TRIGGER_LEFT:
+                    return controllerState.leftTrigger > ANALOG_DEADZONE;
+                case TRIGGER_RIGHT:
+                    return controllerState.rightTrigger > ANALOG_DEADZONE;
+                case LEFT_STICK_UP:
+                    return controllerState.leftStickY > ANALOG_DEADZONE;
+                case LEFT_STICK_DOWN:
+                    return controllerState.leftStickY < -ANALOG_DEADZONE;
+                case LEFT_STICK_LEFT:
+                    return controllerState.leftStickX < -ANALOG_DEADZONE;
+                case LEFT_STICK_RIGHT:
+                    return controllerState.leftStickX > ANALOG_DEADZONE;
+                case LEFT_STICK_CLICK:
+                    return controllerState.leftStickClick;
+                case RIGHT_STICK_UP:
+                    return controllerState.rightStickY > ANALOG_DEADZONE;
+                case RIGHT_STICK_DOWN:
+                    return controllerState.rightStickY < -ANALOG_DEADZONE;
+                case RIGHT_STICK_LEFT:
+                    return controllerState.rightStickX < -ANALOG_DEADZONE;
+                case RIGHT_STICK_RIGHT:
+                    return controllerState.rightStickX > ANALOG_DEADZONE;
+                case RIGHT_STICK_CLICK:
+                    return controllerState.rightStickClick;
+                default:
+                    throw new Error("Invalid ControllerInputConditionType");
+            }
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            ControllerInputTrigger that = (ControllerInputTrigger) o;
+            ControllerInputCondition that = (ControllerInputCondition) o;
             return player == that.player &&
                 type == that.type;
         }
@@ -202,7 +204,8 @@ public class InputProviderImpl implements InputProvider {
         }
     }
 
-    enum ControllerInputType {
+
+    private enum ControllerInputConditionType {
         DPAD_UP,
         DPAD_DOWN,
         DPAD_LEFT,
