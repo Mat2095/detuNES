@@ -21,12 +21,16 @@ Features that WON'T be implemented:
 - audio output (APU will only be implemented as far as necessary, but no actual output)
 - persistency (neither save-states nor memory-snapshots)
 
+### Prerequisites
+
+- Java 8 (Darcula causes problems with Java 9+, see https://github.com/bulenkov/Darcula/issues/41)
+- Gradle 5.3 or later
+
 ### Import into IntelliJ IDEA
 
 - Open the Gradle project
 - Enable "Use auto-import"
-- Select "Use local gradle distribution", using at least version 5.3
-- Note: make sure you're using Java 8, since Darcula causes problems with Java 9+ (https://github.com/bulenkov/Darcula/issues/41)
+- Select "Use local gradle distribution"
 
 ### Usage
 
