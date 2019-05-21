@@ -133,6 +133,10 @@ class Emulator implements RenderingContext, InputProvider {
         return ppu;
     }
 
+    Cpu getCpu() {
+        return cpu;
+    }
+
     byte readCpu(int addr) {
         if (addr < 0x0000 || addr > 0xFFFF) {
             throw new IllegalArgumentException("CPU addr out of range: " + Util.getHexString16bit(addr));
