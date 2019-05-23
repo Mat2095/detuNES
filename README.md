@@ -50,4 +50,4 @@ These tasks can be saved in IntelliJ IDEA for easy access.
   - Create a new JUnit task
   - Set "Test kind" to "All in package" and "Search for tests" to "In whole project"
   - Add the Gradle task "prepareTest" to "Before launch"
-
+  - To generate the JaCoCo report, you'll have to run `gradle jacocoTestReport` manually

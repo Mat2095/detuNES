@@ -1,6 +1,7 @@
 plugins {
     id "java"
     id "application"
+    id "jacoco"
     id "com.github.johnrengelman.shadow" version "5.0.0"
     id "de.undercouch.download" version "3.4.3"
     id "com.adarshr.test-logger" version "1.6.0"
@@ -72,6 +73,7 @@ task prepareTest {
 test {
     dependsOn prepareTest
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
 }
 
 
