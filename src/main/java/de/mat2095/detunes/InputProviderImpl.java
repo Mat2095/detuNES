@@ -9,11 +9,13 @@ import java.util.*;
 public class InputProviderImpl implements InputProvider {
 
     private static final float ANALOG_DEADZONE = 0.5f;
+    private static final long CONTROLLER_CACHING_TIME = 1; // milliseconds
 
     private final List<Map<Button, InputConditions>> inputMappings;
 
     private final Set<Integer> pressedKeys;
     private final ControllerManager cm;
+    private final Map<Integer, ControllerCachedState> cachedStates;
 
     InputProviderImpl() {
         pressedKeys = new HashSet<>();
@@ -29,6 +31,7 @@ public class InputProviderImpl implements InputProvider {
         cm = new ControllerManager();
         cm.initSDLGamepad();
         Runtime.getRuntime().addShutdownHook(new Thread(cm::quitSDLGamepad));
+        cachedStates = new HashMap<>();
     }
 
     private void applyDefaultMappings() {
@@ -98,6 +101,31 @@ public class InputProviderImpl implements InputProvider {
             || inputConditions.controllerInputConditions.stream().anyMatch(ControllerInputCondition::isFulfilled);
     }
 
+    private ControllerState getControllerState(int player) {
+        return cachedStates.computeIfAbsent(player, integer -> new ControllerCachedState(player)).getState();
+    }
+
+
+    private class ControllerCachedState {
+        private final int player;
+        private long updateTime;
+        private ControllerState state;
+
+        private ControllerCachedState(int player) {
+            this.player = player;
+        }
+
+        private ControllerState getState() {
+            long currentTime = System.currentTimeMillis();
+            System.out.println(currentTime - updateTime >= CONTROLLER_CACHING_TIME);
+            if (currentTime - updateTime >= CONTROLLER_CACHING_TIME) {
+                state = cm.getState(player);
+                updateTime = currentTime;
+            }
+            return state;
+        }
+    }
+
 
     private class InputConditions {
         final Set<Integer> keyboardCodes;
@@ -131,7 +159,7 @@ public class InputProviderImpl implements InputProvider {
         }
 
         private boolean isFulfilled() {
-            ControllerState controllerState = cm.getState(player); // TODO: caching?
+            ControllerState controllerState = getControllerState(player);
 
             switch (type) {
                 case DPAD_UP:

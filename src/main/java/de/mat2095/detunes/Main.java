@@ -26,7 +26,7 @@ class Main {
 
         RunConfiguration runConfig = new RunConfiguration();
         runConfig.sleepDuration = 1;
-        runConfig.sleepPeriodicity = 20000;
+        runConfig.sleepPeriodicity = 1500;
 //        runConfig.debugPpuPrintAccesses = true;
 
         Emulator emu = new Emulator(romFile.toPath(), runConfig);
