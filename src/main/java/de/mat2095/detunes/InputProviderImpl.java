@@ -117,7 +117,6 @@ public class InputProviderImpl implements InputProvider {
 
         private ControllerState getState() {
             long currentTime = System.currentTimeMillis();
-            System.out.println(currentTime - updateTime >= CONTROLLER_CACHING_TIME);
             if (currentTime - updateTime >= CONTROLLER_CACHING_TIME) {
                 state = cm.getState(player);
                 updateTime = currentTime;
