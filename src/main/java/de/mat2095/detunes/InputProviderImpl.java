@@ -101,6 +101,10 @@ public class InputProviderImpl implements InputProvider {
             || inputConditions.controllerInputConditions.stream().anyMatch(ControllerInputCondition::isFulfilled);
     }
 
+    InputConditions getInputConditions(int player, Button button){
+        return inputMappings.get(player).get(button);
+    }
+
     private ControllerState getControllerState(int player) {
         return cachedStates.computeIfAbsent(player, integer -> new ControllerCachedState(player)).getState();
     }
@@ -126,7 +130,7 @@ public class InputProviderImpl implements InputProvider {
     }
 
 
-    private class InputConditions {
+    class InputConditions {
         final Set<Integer> keyboardCodes;
         final Set<ControllerInputCondition> controllerInputConditions;
 

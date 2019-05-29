@@ -24,8 +24,11 @@ class Gui implements RenderingContext {
     private volatile boolean redrawNecessary;
     private final Object bufferLockRead, bufferLockWrite;
     private DebugPpuGui debugPpuGui;
+    private InputConfigGui inputConfigGui;
 
     Gui(Emulator emu) {
+        InputProviderImpl ipk = new InputProviderImpl();
+
         offscreenImage1 = new BufferedImage(INTERNAL_WIDTH, INTERNAL_HEIGHT, BufferedImage.TYPE_INT_RGB);
         bufferData1 = ((DataBufferInt) (offscreenImage1.getRaster().getDataBuffer())).getData();
         offscreenImage2 = new BufferedImage(INTERNAL_WIDTH, INTERNAL_HEIGHT, BufferedImage.TYPE_INT_RGB);
@@ -41,6 +44,31 @@ class Gui implements RenderingContext {
         videoSizeMenuItems = new ArrayList<>();
         videoSizeMenu.add(generateVideoSizeMenuItem(1));
         menuBar.add(videoSizeMenu);
+
+        JMenu configMenu = new JMenu("Configuration");
+        JCheckBoxMenuItem inputConfigMenuItem = new JCheckBoxMenuItem("Input");
+        inputConfigMenuItem.addItemListener(e -> {
+            if (inputConfigMenuItem.getState()) {
+                if (inputConfigGui == null) {
+                    inputConfigGui = new InputConfigGui(ipk);
+                    inputConfigGui.addWindowListener(new WindowAdapter() {
+                        @Override
+                        public void windowClosed(WindowEvent e) {
+                            inputConfigMenuItem.setState(false);
+                            inputConfigGui = null;
+                        }
+                    });
+                }
+            } else {
+                if (inputConfigGui != null) {
+                    inputConfigGui.dispose();
+                    inputConfigGui = null;
+                }
+            }
+        });
+        configMenu.add(inputConfigMenuItem);
+        menuBar.add(configMenu);
+
         JMenu debugMenu = new JMenu("Debug");
         JCheckBoxMenuItem ppuDebugMenuItem = new JCheckBoxMenuItem("PPU");
         ppuDebugMenuItem.addItemListener(e -> {
@@ -64,6 +92,7 @@ class Gui implements RenderingContext {
         });
         debugMenu.add(ppuDebugMenuItem);
         menuBar.add(debugMenu);
+
         frame.setJMenuBar(menuBar);
 
         canvas = new JPanel() {
@@ -89,7 +118,6 @@ class Gui implements RenderingContext {
 
         };
 
-        InputProviderImpl ipk = new InputProviderImpl();
         canvas.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -155,6 +183,9 @@ class Gui implements RenderingContext {
                 repaintThread.shutdown();
                 if (debugPpuGui != null) {
                     debugPpuGui.dispose();
+                }
+                if (inputConfigGui != null) {
+                    inputConfigGui.dispose();
                 }
                 frame.dispose();
                 emu.halt();
