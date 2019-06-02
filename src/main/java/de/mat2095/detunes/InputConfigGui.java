@@ -1,17 +1,18 @@
 package de.mat2095.detunes;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.util.stream.Collectors;
+import javax.swing.*;
 
 
-class InputConfigGui extends JFrame {
+class InputConfigGui extends JDialog {
 
     private final InputProviderImpl ip;
 
-    InputConfigGui(InputProviderImpl ip) throws HeadlessException {
-        super("detuNES - configure input");
+    InputConfigGui(JFrame owner, InputProviderImpl ip) throws HeadlessException {
+        super(owner, "detuNES - configure input");
+        setModalityType(ModalityType.APPLICATION_MODAL);
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         setLayout(new GridBagLayout());
 

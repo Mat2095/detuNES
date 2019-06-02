@@ -50,7 +50,7 @@ class Gui implements RenderingContext {
         inputConfigMenuItem.addItemListener(e -> {
             if (inputConfigMenuItem.getState()) {
                 if (inputConfigGui == null) {
-                    inputConfigGui = new InputConfigGui(ipk);
+                    inputConfigGui = new InputConfigGui(frame, ipk);
                     inputConfigGui.addWindowListener(new WindowAdapter() {
                         @Override
                         public void windowClosed(WindowEvent e) {
