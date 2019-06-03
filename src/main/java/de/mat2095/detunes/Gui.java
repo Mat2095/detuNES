@@ -46,24 +46,16 @@ class Gui implements RenderingContext {
         menuBar.add(videoSizeMenu);
 
         JMenu configMenu = new JMenu("Configuration");
-        JCheckBoxMenuItem inputConfigMenuItem = new JCheckBoxMenuItem("Input");
-        inputConfigMenuItem.addItemListener(e -> {
-            if (inputConfigMenuItem.getState()) {
-                if (inputConfigGui == null) {
-                    inputConfigGui = new InputConfigGui(frame, ipk);
-                    inputConfigGui.addWindowListener(new WindowAdapter() {
-                        @Override
-                        public void windowClosed(WindowEvent e) {
-                            inputConfigMenuItem.setState(false);
-                            inputConfigGui = null;
-                        }
-                    });
-                }
-            } else {
-                if (inputConfigGui != null) {
-                    inputConfigGui.dispose();
-                    inputConfigGui = null;
-                }
+        JMenuItem inputConfigMenuItem = new JMenuItem("Input...");
+        inputConfigMenuItem.addActionListener(e -> {
+            if (inputConfigGui == null) {
+                inputConfigGui = new InputConfigGui(frame, ipk);
+                inputConfigGui.addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowClosed(WindowEvent e) {
+                        inputConfigGui = null;
+                    }
+                });
             }
         });
         configMenu.add(inputConfigMenuItem);
