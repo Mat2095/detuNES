@@ -101,7 +101,7 @@ public class InputProviderImpl implements InputProvider {
             || inputConditions.controllerInputConditions.stream().anyMatch(ControllerInputCondition::isFulfilled);
     }
 
-    InputConditions getInputConditions(int player, Button button){
+    InputConditions getInputConditions(int player, Button button) {
         return inputMappings.get(player).get(button);
     }
 
@@ -146,7 +146,7 @@ public class InputProviderImpl implements InputProvider {
     }
 
 
-    private class ControllerInputCondition {
+    class ControllerInputCondition {
         final int player;
         final ControllerInputConditionType type;
 
@@ -236,7 +236,7 @@ public class InputProviderImpl implements InputProvider {
     }
 
 
-    private enum ControllerInputConditionType {
+    enum ControllerInputConditionType {
         DPAD_UP,
         DPAD_DOWN,
         DPAD_LEFT,
