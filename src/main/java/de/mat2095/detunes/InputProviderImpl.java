@@ -146,7 +146,7 @@ public class InputProviderImpl implements InputProvider {
     }
 
 
-    class ControllerInputCondition {
+    class ControllerInputCondition implements Comparable<ControllerInputCondition> {
         final int player;
         final ControllerInputConditionType type;
 
@@ -232,6 +232,13 @@ public class InputProviderImpl implements InputProvider {
         @Override
         public int hashCode() {
             return Objects.hash(player, type);
+        }
+
+        @Override
+        public int compareTo(ControllerInputCondition o) {
+            return Comparator.comparingInt((ControllerInputCondition cic) -> cic.player)
+                .thenComparing(cic -> cic.type)
+                .compare(this, o);
         }
     }
 

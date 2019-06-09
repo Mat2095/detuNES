@@ -2,7 +2,6 @@ package de.mat2095.detunes;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
-import java.util.stream.Collectors;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
@@ -39,11 +38,12 @@ class InputConfigGui extends JDialog {
         for (int player = 0; player < 2; player++) {
             for (int buttonIndex = 0; buttonIndex < buttons.length; buttonIndex++) {
                 JButton conditionsButton = new JButton();
+                conditionsButton.setLayout(new BoxLayout(conditionsButton, BoxLayout.Y_AXIS));
                 conditionsButton.addActionListener(actionEvent -> {
                     // TODO: open dialog
                 });
                 add(conditionsButton,
-                    new GridBagConstraints(1 + player, 1 + buttonIndex, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, new Insets(2, 2, 2, 2), 0, 0));
+                    new GridBagConstraints(1 + player, 1 + buttonIndex, 1, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH, new Insets(2, 2, 2, 2), 0, 0));
                 conditionsButtons[player][buttonIndex] = conditionsButton;
             }
         }
@@ -61,29 +61,21 @@ class InputConfigGui extends JDialog {
             for (int buttonIndex = 0; buttonIndex < buttons.length; buttonIndex++) {
                 InputProviderImpl.InputConditions inputConditions = ip.getInputConditions(player, buttons[buttonIndex]);
 
-                String inputConditions1String;
-                if (inputConditions.keyboardCodes.isEmpty()) {
-                    inputConditions1String = "[NONE]";
-                } else {
-                    inputConditions1String = inputConditions.keyboardCodes.stream()
-                        .sorted()
-                        .map(KeyEvent::getKeyText)
-                        .collect(Collectors.joining(", "));
-                }
-
-                String inputConditions2String;
-                if (inputConditions.controllerInputConditions.isEmpty()) {
-                    inputConditions2String = "[NONE]";
-                } else {
-                    inputConditions2String = inputConditions.controllerInputConditions.stream()
-                        .map(controllerInputCondition -> controllerInputCondition.type + " @C" + controllerInputCondition.player)
-                        .collect(Collectors.joining(", "));
-                }
-
-                // TODO: two lines
                 JButton conditionsButton = conditionsButtons[player][buttonIndex];
-                conditionsButton.setText(inputConditions1String + ", " + inputConditions2String);
-                conditionsButton.setPreferredSize(null);
+                conditionsButton.removeAll();
+
+                inputConditions.keyboardCodes.stream()
+                    .sorted()
+                    .map(keyCode -> "Keyboard: " + KeyEvent.getKeyText(keyCode))
+                    .forEach(s -> conditionsButton.add(new JLabel(s)));
+                inputConditions.controllerInputConditions.stream()
+                    .sorted()
+                    .map(controllerInputCondition -> "Controller " + controllerInputCondition.player + ": " + controllerInputCondition.type)
+                    .forEach(s -> conditionsButton.add(new JLabel(s)));
+                if (conditionsButton.getComponentCount() == 0) {
+                    conditionsButton.add(new JLabel("[NONE]"));
+                }
+
                 conditionsButton.setPreferredSize(new Dimension(256, conditionsButton.getPreferredSize().height));
             }
         }
