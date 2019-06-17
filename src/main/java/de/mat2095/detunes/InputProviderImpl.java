@@ -11,7 +11,7 @@ public class InputProviderImpl implements InputProvider {
     private static final float ANALOG_DEADZONE = 0.5f;
     private static final long CONTROLLER_CACHING_TIME = 1; // milliseconds
 
-    private final List<Map<Button, InputConditions>> inputMappings;
+    private final List<Map<Button, Set<InputCondition>>> inputMappings;
 
     private final Set<Integer> pressedKeys;
     private final ControllerManager cm;
@@ -21,9 +21,9 @@ public class InputProviderImpl implements InputProvider {
         pressedKeys = new HashSet<>();
         inputMappings = new ArrayList<>(2);
         for (int player = 0; player < 2; player++) {
-            Map<Button, InputConditions> inputMapping = new EnumMap<>(Button.class);
+            Map<Button, Set<InputCondition>> inputMapping = new EnumMap<>(Button.class);
             for (Button button : Button.values()) {
-                inputMapping.put(button, new InputConditions());
+                inputMapping.put(button, new HashSet<>());
             }
             inputMappings.add(inputMapping);
         }
@@ -41,44 +41,44 @@ public class InputProviderImpl implements InputProvider {
             }
         }
 
-        inputMappings.get(0).get(Button.BUTTON_A).keyboardCodes.add(KeyEvent.VK_K);
-        inputMappings.get(0).get(Button.BUTTON_B).keyboardCodes.add(KeyEvent.VK_J);
-        inputMappings.get(0).get(Button.BUTTON_SELECT).keyboardCodes.add(KeyEvent.VK_BACK_SPACE);
-        inputMappings.get(0).get(Button.BUTTON_START).keyboardCodes.add(KeyEvent.VK_ENTER);
-        inputMappings.get(0).get(Button.BUTTON_UP).keyboardCodes.add(KeyEvent.VK_UP);
-        inputMappings.get(0).get(Button.BUTTON_UP).keyboardCodes.add(KeyEvent.VK_W);
-        inputMappings.get(0).get(Button.BUTTON_DOWN).keyboardCodes.add(KeyEvent.VK_DOWN);
-        inputMappings.get(0).get(Button.BUTTON_DOWN).keyboardCodes.add(KeyEvent.VK_S);
-        inputMappings.get(0).get(Button.BUTTON_LEFT).keyboardCodes.add(KeyEvent.VK_LEFT);
-        inputMappings.get(0).get(Button.BUTTON_LEFT).keyboardCodes.add(KeyEvent.VK_A);
-        inputMappings.get(0).get(Button.BUTTON_RIGHT).keyboardCodes.add(KeyEvent.VK_RIGHT);
-        inputMappings.get(0).get(Button.BUTTON_RIGHT).keyboardCodes.add(KeyEvent.VK_D);
+        inputMappings.get(0).get(Button.BUTTON_A).add(new KeyboardInputCondition(KeyEvent.VK_K));
+        inputMappings.get(0).get(Button.BUTTON_B).add(new KeyboardInputCondition(KeyEvent.VK_J));
+        inputMappings.get(0).get(Button.BUTTON_SELECT).add(new KeyboardInputCondition(KeyEvent.VK_BACK_SPACE));
+        inputMappings.get(0).get(Button.BUTTON_START).add(new KeyboardInputCondition(KeyEvent.VK_ENTER));
+        inputMappings.get(0).get(Button.BUTTON_UP).add(new KeyboardInputCondition(KeyEvent.VK_UP));
+        inputMappings.get(0).get(Button.BUTTON_UP).add(new KeyboardInputCondition(KeyEvent.VK_W));
+        inputMappings.get(0).get(Button.BUTTON_DOWN).add(new KeyboardInputCondition(KeyEvent.VK_DOWN));
+        inputMappings.get(0).get(Button.BUTTON_DOWN).add(new KeyboardInputCondition(KeyEvent.VK_S));
+        inputMappings.get(0).get(Button.BUTTON_LEFT).add(new KeyboardInputCondition(KeyEvent.VK_LEFT));
+        inputMappings.get(0).get(Button.BUTTON_LEFT).add(new KeyboardInputCondition(KeyEvent.VK_A));
+        inputMappings.get(0).get(Button.BUTTON_RIGHT).add(new KeyboardInputCondition(KeyEvent.VK_RIGHT));
+        inputMappings.get(0).get(Button.BUTTON_RIGHT).add(new KeyboardInputCondition(KeyEvent.VK_D));
 
         for (int player = 0; player < 2; player++) {
             inputMappings.get(player).get(Button.BUTTON_A)
-                .controllerInputConditions.add(new ControllerInputCondition(player, ControllerInputConditionType.BUTTON_B));
+                .add(new ControllerInputCondition(player, ControllerInputConditionType.BUTTON_B));
             inputMappings.get(player).get(Button.BUTTON_B)
-                .controllerInputConditions.add(new ControllerInputCondition(player, ControllerInputConditionType.BUTTON_A));
+                .add(new ControllerInputCondition(player, ControllerInputConditionType.BUTTON_A));
             inputMappings.get(player).get(Button.BUTTON_SELECT)
-                .controllerInputConditions.add(new ControllerInputCondition(player, ControllerInputConditionType.BUTTON_BACK));
+                .add(new ControllerInputCondition(player, ControllerInputConditionType.BUTTON_BACK));
             inputMappings.get(player).get(Button.BUTTON_START)
-                .controllerInputConditions.add(new ControllerInputCondition(player, ControllerInputConditionType.BUTTON_START));
+                .add(new ControllerInputCondition(player, ControllerInputConditionType.BUTTON_START));
             inputMappings.get(player).get(Button.BUTTON_UP)
-                .controllerInputConditions.add(new ControllerInputCondition(player, ControllerInputConditionType.DPAD_UP));
+                .add(new ControllerInputCondition(player, ControllerInputConditionType.DPAD_UP));
             inputMappings.get(player).get(Button.BUTTON_UP)
-                .controllerInputConditions.add(new ControllerInputCondition(player, ControllerInputConditionType.LEFT_STICK_UP));
+                .add(new ControllerInputCondition(player, ControllerInputConditionType.LEFT_STICK_UP));
             inputMappings.get(player).get(Button.BUTTON_DOWN)
-                .controllerInputConditions.add(new ControllerInputCondition(player, ControllerInputConditionType.DPAD_DOWN));
+                .add(new ControllerInputCondition(player, ControllerInputConditionType.DPAD_DOWN));
             inputMappings.get(player).get(Button.BUTTON_DOWN)
-                .controllerInputConditions.add(new ControllerInputCondition(player, ControllerInputConditionType.LEFT_STICK_DOWN));
+                .add(new ControllerInputCondition(player, ControllerInputConditionType.LEFT_STICK_DOWN));
             inputMappings.get(player).get(Button.BUTTON_LEFT)
-                .controllerInputConditions.add(new ControllerInputCondition(player, ControllerInputConditionType.DPAD_LEFT));
+                .add(new ControllerInputCondition(player, ControllerInputConditionType.DPAD_LEFT));
             inputMappings.get(player).get(Button.BUTTON_LEFT)
-                .controllerInputConditions.add(new ControllerInputCondition(player, ControllerInputConditionType.LEFT_STICK_LEFT));
+                .add(new ControllerInputCondition(player, ControllerInputConditionType.LEFT_STICK_LEFT));
             inputMappings.get(player).get(Button.BUTTON_RIGHT)
-                .controllerInputConditions.add(new ControllerInputCondition(player, ControllerInputConditionType.DPAD_RIGHT));
+                .add(new ControllerInputCondition(player, ControllerInputConditionType.DPAD_RIGHT));
             inputMappings.get(player).get(Button.BUTTON_RIGHT)
-                .controllerInputConditions.add(new ControllerInputCondition(player, ControllerInputConditionType.LEFT_STICK_RIGHT));
+                .add(new ControllerInputCondition(player, ControllerInputConditionType.LEFT_STICK_RIGHT));
         }
     }
 
@@ -96,12 +96,11 @@ public class InputProviderImpl implements InputProvider {
 
     @Override
     public boolean isButtonPressed(int player, Button button) {
-        InputConditions inputConditions = inputMappings.get(player).get(button);
-        return !Collections.disjoint(inputConditions.keyboardCodes, pressedKeys)
-            || inputConditions.controllerInputConditions.stream().anyMatch(ControllerInputCondition::isFulfilled);
+        return inputMappings.get(player).get(button)
+            .stream().anyMatch(InputCondition::isFulfilled);
     }
 
-    InputConditions getInputConditions(int player, Button button) {
+    Set<InputCondition> getInputConditions(int player, Button button) {
         return inputMappings.get(player).get(button);
     }
 
@@ -130,23 +129,60 @@ public class InputProviderImpl implements InputProvider {
     }
 
 
-    class InputConditions {
-        final Set<Integer> keyboardCodes;
-        final Set<ControllerInputCondition> controllerInputConditions;
+    abstract class InputCondition implements Comparable<InputCondition> {
+        abstract boolean isFulfilled();
 
-        InputConditions() {
-            keyboardCodes = new HashSet<>();
-            controllerInputConditions = new HashSet<>();
+        @Override
+        public int compareTo(InputCondition o) {
+            return Comparator.comparing(o1 -> o1.getClass().getSimpleName())
+                .reversed()
+                .compare(this, o);
+        }
+    }
+
+    class KeyboardInputCondition extends InputCondition {
+        final int keyCode;
+
+        KeyboardInputCondition(int keyCode) {
+            this.keyCode = keyCode;
         }
 
-        void clear() {
-            keyboardCodes.clear();
-            controllerInputConditions.clear();
+        @Override
+        boolean isFulfilled() {
+            return pressedKeys.contains(keyCode);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            KeyboardInputCondition that = (KeyboardInputCondition) o;
+            return keyCode == that.keyCode;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(keyCode);
+        }
+
+        @Override
+        public String toString() {
+            return "Keyboard: " + KeyEvent.getKeyText(keyCode);
+        }
+
+        @Override
+        public int compareTo(InputCondition o) {
+            if (o instanceof KeyboardInputCondition) {
+                return Comparator.comparingInt((KeyboardInputCondition kic) -> kic.keyCode)
+                    .compare(this, (KeyboardInputCondition) o);
+            } else {
+                return super.compareTo(o);
+            }
         }
     }
 
 
-    class ControllerInputCondition implements Comparable<ControllerInputCondition> {
+    class ControllerInputCondition extends InputCondition {
         final int player;
         final ControllerInputConditionType type;
 
@@ -161,7 +197,7 @@ public class InputProviderImpl implements InputProvider {
             this.type = type;
         }
 
-        private boolean isFulfilled() {
+        boolean isFulfilled() {
             ControllerState controllerState = getControllerState(player);
 
             switch (type) {
@@ -235,10 +271,19 @@ public class InputProviderImpl implements InputProvider {
         }
 
         @Override
-        public int compareTo(ControllerInputCondition o) {
-            return Comparator.comparingInt((ControllerInputCondition cic) -> cic.player)
-                .thenComparing(cic -> cic.type)
-                .compare(this, o);
+        public String toString() {
+            return "Controller " + player + ": " + type;
+        }
+
+        @Override
+        public int compareTo(InputCondition o) {
+            if (o instanceof ControllerInputCondition) {
+                return Comparator.comparingInt((ControllerInputCondition cic) -> cic.player)
+                    .thenComparing(cic -> cic.type)
+                    .compare(this, (ControllerInputCondition) o);
+            } else {
+                return super.compareTo(o);
+            }
         }
     }
 

@@ -1,7 +1,7 @@
 package de.mat2095.detunes;
 
 import java.awt.*;
-import java.awt.event.KeyEvent;
+import java.util.Set;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
@@ -61,19 +61,15 @@ class InputConfigGui extends JDialog {
     private void updateTexts() {
         for (int player = 0; player < 2; player++) {
             for (int buttonIndex = 0; buttonIndex < buttons.length; buttonIndex++) {
-                InputProviderImpl.InputConditions inputConditions = ip.getInputConditions(player, buttons[buttonIndex]);
+                Set<InputProviderImpl.InputCondition> inputConditions
+                    = ip.getInputConditions(player, buttons[buttonIndex]);
 
                 JButton conditionsButton = conditionsButtons[player][buttonIndex];
                 conditionsButton.removeAll();
 
-                inputConditions.keyboardCodes.stream()
+                inputConditions.stream()
                     .sorted()
-                    .map(keyCode -> "Keyboard: " + KeyEvent.getKeyText(keyCode))
-                    .forEach(s -> conditionsButton.add(new JLabel(s)));
-                inputConditions.controllerInputConditions.stream()
-                    .sorted()
-                    .map(controllerInputCondition -> "Controller " + controllerInputCondition.player + ": " + controllerInputCondition.type)
-                    .forEach(s -> conditionsButton.add(new JLabel(s)));
+                    .forEach(inputCondition -> conditionsButton.add(new JLabel(inputCondition.toString())));
                 if (conditionsButton.getComponentCount() == 0) {
                     conditionsButton.add(new JLabel("[NONE]"));
                 }
@@ -85,15 +81,11 @@ class InputConfigGui extends JDialog {
     }
 
     private void openDialog(int player, int buttonIndex) {
-        InputProviderImpl.InputConditions inputConditions = ip.getInputConditions(player, buttons[buttonIndex]);
-        DefaultListModel<String> listModel = new DefaultListModel<>();
-        inputConditions.keyboardCodes.stream()
+        Set<InputProviderImpl.InputCondition> inputConditions = ip.getInputConditions(player, buttons[buttonIndex]);
+        DefaultListModel<InputProviderImpl.InputCondition> listModel = new DefaultListModel<>();
+
+        inputConditions.stream()
             .sorted()
-            .map(keyCode -> "Keyboard: " + KeyEvent.getKeyText(keyCode))
-            .forEach(listModel::addElement);
-        inputConditions.controllerInputConditions.stream()
-            .sorted()
-            .map(controllerInputCondition -> "Controller " + controllerInputCondition.player + ": " + controllerInputCondition.type)
             .forEach(listModel::addElement);
 
         JDialog dialog = new JDialog(this, "detuNES - configure input");
@@ -106,7 +98,7 @@ class InputConfigGui extends JDialog {
         dialog.add(heading,
             new GridBagConstraints(0, 0, 2, 1, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.HORIZONTAL, new Insets(2, 8, 6, 2), 0, 0));
 
-        JList<String> conditions = new JList<>(listModel);
+        JList<InputProviderImpl.InputCondition> conditions = new JList<>(listModel);
         conditions.setLayoutOrientation(JList.VERTICAL);
 
         dialog.add(new JScrollPane(conditions),
@@ -114,9 +106,7 @@ class InputConfigGui extends JDialog {
 
         JButton delete = new JButton("-");
         delete.addActionListener(e -> {
-            for (int selectedIndex : conditions.getSelectedIndices()) {
-                listModel.remove(selectedIndex);
-            }
+            conditions.getSelectedValuesList().forEach(listModel::removeElement);
         });
         dialog.add(delete,
             new GridBagConstraints(1, 1, 1, 1, 0, 0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 2), 0, 0));
