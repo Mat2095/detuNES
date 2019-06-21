@@ -104,6 +104,10 @@ public class InputProviderImpl implements InputProvider {
         return inputMappings.get(player).get(button);
     }
 
+    void setInputConditions(int player, Button button, Set<InputCondition> inputConditions) {
+        inputMappings.get(player).put(button, inputConditions);
+    }
+
     private ControllerState getControllerState(int player) {
         return cachedStates.computeIfAbsent(player, integer -> new ControllerCachedState(player)).getState();
     }

@@ -1,6 +1,8 @@
 package de.mat2095.detunes;
 
 import java.awt.*;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -17,7 +19,7 @@ class InputConfigGui extends JDialog {
         setModalityType(ModalityType.APPLICATION_MODAL);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLayout(new GridBagLayout());
-        getRootPane().setBorder(new EmptyBorder(4, 4, 2, 2));
+        getRootPane().setBorder(new EmptyBorder(8, 8, 6, 6));
 
         this.ip = ip;
 
@@ -52,9 +54,9 @@ class InputConfigGui extends JDialog {
 
         updateTexts();
 
+        setResizable(false);
         pack();
         setLocationRelativeTo(owner);
-        setResizable(false);
         setVisible(true);
     }
 
@@ -74,10 +76,10 @@ class InputConfigGui extends JDialog {
                     conditionsButton.add(new JLabel("[NONE]"));
                 }
 
+                conditionsButton.setPreferredSize(null);
                 conditionsButton.setPreferredSize(new Dimension(256, conditionsButton.getPreferredSize().height));
             }
         }
-        revalidate();
     }
 
     private void openDialog(int player, int buttonIndex) {
@@ -115,8 +117,10 @@ class InputConfigGui extends JDialog {
             new GridBagConstraints(1, 2, 1, 1, 0, 0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 2), 0, 0));
         JButton ok = new JButton("OK");
         ok.addActionListener(e -> {
-            // TODO: update inputConditions
+            ip.setInputConditions(player, buttons[buttonIndex], new HashSet<>(Collections.list(listModel.elements())));
             updateTexts();
+            // TODO: revalidate on linux?
+            pack();
             dialog.dispose();
         });
         dialog.add(ok,
