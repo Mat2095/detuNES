@@ -1,7 +1,6 @@
 package de.mat2095.detunes;
 
 import java.awt.*;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import javax.swing.*;
@@ -83,7 +82,7 @@ class InputConfigGui extends JDialog {
     }
 
     private void openDialog(int player, int buttonIndex) {
-        Set<InputProviderImpl.InputCondition> inputConditions = ip.getInputConditions(player, buttons[buttonIndex]);
+        Set<InputProviderImpl.InputCondition> inputConditions = new HashSet<>(ip.getInputConditions(player, buttons[buttonIndex]));
         DefaultListModel<InputProviderImpl.InputCondition> listModel = new DefaultListModel<>();
 
         inputConditions.stream()
@@ -107,17 +106,30 @@ class InputConfigGui extends JDialog {
             new GridBagConstraints(0, 1, 1, 3, 1, 1, GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(2, 6, 2, 2), 0, 0));
 
         JButton delete = new JButton("-");
-        delete.addActionListener(e -> {
-            conditions.getSelectedValuesList().forEach(listModel::removeElement);
-        });
+        delete.addActionListener(e -> conditions.getSelectedValuesList().forEach(obj -> {
+            inputConditions.remove(obj);
+            listModel.removeElement(obj);
+        }));
         dialog.add(delete,
             new GridBagConstraints(1, 1, 1, 1, 0, 0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 2), 0, 0));
+
         JButton add = new JButton("+");
+        add.addActionListener(e -> {
+            InputProviderImpl.InputCondition newIC = enterNewInputCondition();
+            if (newIC != null) {
+                inputConditions.add(newIC);
+                listModel.clear();
+                inputConditions.stream()
+                    .sorted()
+                    .forEach(listModel::addElement);
+            }
+        });
         dialog.add(add,
             new GridBagConstraints(1, 2, 1, 1, 0, 0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 2), 0, 0));
+
         JButton ok = new JButton("OK");
         ok.addActionListener(e -> {
-            ip.setInputConditions(player, buttons[buttonIndex], new HashSet<>(Collections.list(listModel.elements())));
+            ip.setInputConditions(player, buttons[buttonIndex], inputConditions);
             updateTexts();
             // TODO: revalidate on linux?
             pack();
@@ -131,5 +143,9 @@ class InputConfigGui extends JDialog {
         dialog.pack();
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
+    }
+
+    private InputProviderImpl.InputCondition enterNewInputCondition() {
+        return null;
     }
 }
