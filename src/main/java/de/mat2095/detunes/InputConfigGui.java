@@ -1,8 +1,11 @@
 package de.mat2095.detunes;
 
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
@@ -115,14 +118,13 @@ class InputConfigGui extends JDialog {
 
         JButton add = new JButton("+");
         add.addActionListener(e -> {
-            InputProviderImpl.InputCondition newIC = enterNewInputCondition();
-            if (newIC != null) {
+            enterNewInputCondition(dialog, newIC -> {
                 inputConditions.add(newIC);
                 listModel.clear();
                 inputConditions.stream()
                     .sorted()
                     .forEach(listModel::addElement);
-            }
+            });
         });
         dialog.add(add,
             new GridBagConstraints(1, 2, 1, 1, 0, 0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 2), 0, 0));
@@ -138,14 +140,33 @@ class InputConfigGui extends JDialog {
         dialog.add(ok,
             new GridBagConstraints(0, 4, 2, 1, 0, 0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(2, 2, 2, 2), 0, 0));
 
-        dialog.setMinimumSize(new Dimension(288, 192));
         dialog.setPreferredSize(new Dimension(384, 256));
         dialog.pack();
+        dialog.setResizable(false);
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
     }
 
-    private InputProviderImpl.InputCondition enterNewInputCondition() {
-        return null;
+    private void enterNewInputCondition(JDialog dialog, Consumer<InputProviderImpl.InputCondition> callback) {
+        JDialog inputDialog = new JDialog(dialog, "detuNES - configure input");
+        inputDialog.setModalityType(ModalityType.APPLICATION_MODAL);
+        inputDialog.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        inputDialog.getRootPane().setBorder(new EmptyBorder(16, 16, 16, 16));
+
+        inputDialog.add(new JLabel("<html><span style='font-size:16px'>enter new input-condition...</span></html>"));
+
+        inputDialog.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                InputProviderImpl.InputCondition ic = ip.new KeyboardInputCondition(e.getKeyCode());
+                callback.accept(ic);
+                inputDialog.dispose();
+            }
+        });
+
+        inputDialog.pack();
+        inputDialog.setResizable(false);
+        inputDialog.setLocationRelativeTo(dialog);
+        inputDialog.setVisible(true);
     }
 }
