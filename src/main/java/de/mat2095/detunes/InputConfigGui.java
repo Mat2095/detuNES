@@ -133,7 +133,6 @@ class InputConfigGui extends JDialog {
         ok.addActionListener(e -> {
             ip.setInputConditions(player, buttons[buttonIndex], inputConditions);
             updateTexts();
-            // TODO: revalidate on linux?
             pack();
             dialog.dispose();
         });
