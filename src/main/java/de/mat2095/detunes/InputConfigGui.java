@@ -166,6 +166,24 @@ class InputConfigGui extends JDialog {
         inputDialog.pack();
         inputDialog.setResizable(false);
         inputDialog.setLocationRelativeTo(dialog);
+        SwingUtilities.invokeLater(() -> new Thread(() -> {
+            while (inputDialog.isShowing()) {
+                Set<InputProviderImpl.ControllerInputCondition> currentlyFulfilledControllerInputConditions
+                    = ip.getCurrentlyFulfilledControllerInputConditions();
+                if (currentlyFulfilledControllerInputConditions.size() == 1) {
+                    SwingUtilities.invokeLater(() -> {
+                        callback.accept(currentlyFulfilledControllerInputConditions.iterator().next());
+                        inputDialog.dispose();
+                    });
+                    return;
+                }
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start());
         inputDialog.setVisible(true);
     }
 }

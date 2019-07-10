@@ -112,6 +112,33 @@ public class InputProviderImpl implements InputProvider {
         return cachedStates.computeIfAbsent(player, integer -> new ControllerCachedState(player)).getState();
     }
 
+    Set<ControllerInputCondition> getCurrentlyFulfilledControllerInputConditions() {
+        cm.update();
+        Set<ControllerInputCondition> result = new HashSet<>();
+        for (int player = 0; player < cm.getNumControllers(); player++) {
+            ControllerState controllerState = getControllerState(player);
+            if (controllerState.dpadUp) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.DPAD_UP));
+            }
+            if (controllerState.dpadDown) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.DPAD_DOWN));
+            }
+            if (controllerState.dpadLeft) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.DPAD_LEFT));
+            }
+            if (controllerState.dpadRight) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.DPAD_RIGHT));
+            }
+            if (controllerState.a) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.BUTTON_A));
+            }
+            if (controllerState.b) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.BUTTON_B));
+            }
+        }
+        return result;
+    }
+
 
     private class ControllerCachedState {
         private final int player;
