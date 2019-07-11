@@ -135,6 +135,63 @@ public class InputProviderImpl implements InputProvider {
             if (controllerState.b) {
                 result.add(new ControllerInputCondition(player, ControllerInputConditionType.BUTTON_B));
             }
+            if (controllerState.x) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.BUTTON_X));
+            }
+            if (controllerState.y) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.BUTTON_Y));
+            }
+            if (controllerState.back) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.BUTTON_BACK));
+            }
+            if (controllerState.start) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.BUTTON_START));
+            }
+            if (controllerState.guide) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.BUTTON_GUIDE));
+            }
+            if (controllerState.lb) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.BUMPER_LEFT));
+            }
+            if (controllerState.rb) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.BUMPER_RIGHT));
+            }
+            if (controllerState.leftTrigger > ANALOG_DEADZONE) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.TRIGGER_LEFT));
+            }
+            if (controllerState.rightTrigger > ANALOG_DEADZONE) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.TRIGGER_RIGHT));
+            }
+            if (controllerState.leftStickY > ANALOG_DEADZONE) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.LEFT_STICK_UP));
+            }
+            if (controllerState.leftStickY < -ANALOG_DEADZONE) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.LEFT_STICK_DOWN));
+            }
+            if (controllerState.leftStickX < -ANALOG_DEADZONE) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.LEFT_STICK_LEFT));
+            }
+            if (controllerState.leftStickX > ANALOG_DEADZONE) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.LEFT_STICK_RIGHT));
+            }
+            if (controllerState.leftStickClick) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.LEFT_STICK_CLICK));
+            }
+            if (controllerState.rightStickY > ANALOG_DEADZONE) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.RIGHT_STICK_UP));
+            }
+            if (controllerState.rightStickY < -ANALOG_DEADZONE) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.RIGHT_STICK_DOWN));
+            }
+            if (controllerState.rightStickX < -ANALOG_DEADZONE) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.RIGHT_STICK_LEFT));
+            }
+            if (controllerState.rightStickX > ANALOG_DEADZONE) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.RIGHT_STICK_RIGHT));
+            }
+            if (controllerState.rightStickClick) {
+                result.add(new ControllerInputCondition(player, ControllerInputConditionType.RIGHT_STICK_CLICK));
+            }
         }
         return result;
     }
