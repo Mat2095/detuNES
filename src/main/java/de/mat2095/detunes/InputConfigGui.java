@@ -60,6 +60,8 @@ class InputConfigGui extends JDialog {
         pack();
         setLocationRelativeTo(owner);
         setVisible(true);
+
+        // TODO: pause emulator while configuring
     }
 
     private void updateTexts() {
