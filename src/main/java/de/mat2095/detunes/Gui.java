@@ -198,12 +198,8 @@ class Gui implements RenderingContext {
             @Override
             public void actionPerformed(ActionEvent e) {
                 Dimension newDim = new Dimension(scaling * INTERNAL_WIDTH, scaling * INTERNAL_HEIGHT);
-                if (!canvas.getPreferredSize().equals(newDim)) {
-                    canvas.setPreferredSize(newDim);
-                    frame.pack();
-                } else {
-                    updateVideoSizeMenuItems();
-                }
+                canvas.setPreferredSize(newDim);
+                frame.pack();
             }
         });
         videoSizeMenuItems.add(videoSizeMenuItem);
