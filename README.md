@@ -23,7 +23,7 @@ Features that WON'T be implemented:
 
 ### Prerequisites
 
-- Java 8 (Darcula causes problems with Java 9+, see https://github.com/bulenkov/Darcula/issues/41)
+- Java 8+ (unless you're just executing the tests, you must stick to Java 8, because Darcula causes problems with Java 9+, see https://github.com/bulenkov/Darcula/issues/41)
 - Gradle 5.3 or later
 
 ### Import into IntelliJ IDEA
