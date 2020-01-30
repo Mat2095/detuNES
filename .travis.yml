@@ -4,12 +4,12 @@ git:
   depth: 1
 
 before_install:
-  - wget http://services.gradle.org/distributions/gradle-5.6.2-bin.zip -P /tmp
+  - wget https://services.gradle.org/distributions/gradle-6.1.1-bin.zip -P /tmp
   - unzip -d /opt/gradle /tmp/gradle-*.zip
-  - export GRADLE_HOME=/opt/gradle/gradle-5.6.2
+  - export GRADLE_HOME=/opt/gradle/gradle-6.1.1
   - export PATH=$GRADLE_HOME/bin:$PATH
 
 install: true
 
 script:
-  - gradle cleanTest test
+  - gradle cleanTest test --warning-mode all
